@@ -11,13 +11,18 @@ export class MediaController {
     return await this.mediaService.getImage(id, res);
   }
 
-  @Post('track/:id')
+  @Get('track/:id')
   async getTrack(@Param('id') id: string, @Res() res, @Body() body: { access_token: string }) {
     return await this.mediaService.getTrack(id, body.access_token, res);
   }
 
-  @Post('track/details/:id')
-  async getTrackDetails() {
+  @Post('track-details/add-favorites')
+  async addFavoritesTrack(@Body() body: { access_token: string, trackId: string }) {
+    return await this.mediaService.addFavoriteTracks(body.trackId, body.access_token);
+  }
 
+  @Post('track-details/get-favorites-list')
+  async getFavoritesTrackList(@Body() body: { access_token: string, trackId: string }) {
+    return await this.mediaService.getFavoriteTracksList(body.access_token);
   }
 }

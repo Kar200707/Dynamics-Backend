@@ -19,29 +19,45 @@ export class MediaService {
 
   async getTrack(trackId: string, access_token: string, res) {
     try {
-      const user = await this.Users.findOne({ userLocalToken: access_token });
-
-      if (user.id) {
+      // const user = await this.Users.findOne({ userLocalToken: access_token });
+      //
+      // if (user.id) {
         return await this.driveSerivce.getFile(trackId, res, 'audio');
-      } else {
-        throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
-      }
+      // } else {
+      //   throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
+      // }
     } catch (error) {
       throw new HttpException('incorrectly request', HttpStatus.BAD_REQUEST);
     }
   }
 
-  async getTrackDetails(trackDetailsId: string, access_token: string) {
-    try {
-      const user = await this.Users.findOne({ userLocalToken: access_token });
+  async getFavoriteTracksList(access_token: string) {
+    const user = await this.Users.findOne({ userLocalToken: access_token });
 
-      if (user.id) {
-        return await this.Tracks.findOne({ id: trackDetailsId });
-      } else {
-        throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
-      }
-    } catch (error) {
-      throw new HttpException('incorrectly request', HttpStatus.BAD_REQUEST);
+    if (user.id) {
+
+      const favoriteTrackList = [];
+
+      await Promise.all(user.trackFavorites.map(async (trackId) => {
+        const track = await this.Tracks.findOne({ _id: trackId });
+        favoriteTrackList.push(track);
+      }));
+
+      return favoriteTrackList;
+    } else {
+      throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async addFavoriteTracks(trackId: string, access_token: string) {
+    const user = await this.Users.findOne({ userLocalToken: access_token });
+    if (user.id) {
+      const addedUser = user.toObject();
+      addedUser.trackFavorites.push(trackId);
+      await this.Users.findOneAndUpdate({ userLocalToken: access_token }, addedUser);
+      return { message: 'track in favorites has ben add' }
+    } else {
+      throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
     }
   }
 }

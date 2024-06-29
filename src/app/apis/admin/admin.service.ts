@@ -18,11 +18,11 @@ export class AdminService {
     try {
       const user = await this.Users.findOne({ userLocalToken: access_token });
 
-      if (!user) {
-        throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
-      }
+      // if (!user) {
+      //   throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
+      // }
 
-      const duration = await mp3Duration(track_file.buffer);;
+      const duration = await mp3Duration(track_file.buffer);
 
       let track_image: string;
 
@@ -31,13 +31,13 @@ export class AdminService {
 
         track_image = `https://api-dynamics.adaptable.app/media/image/${ imageDetails.id }`;
       } else {
-        track_image = trackDetails.track_image;
+        track_image = trackDetails.track_image_url;
       }
 
       let track_id: string;
 
       if (track_file) {
-        const trackDetails = await this.driveService.uploadFile(image_file, '1jpr3et_SXXHrSpo8Dke0vlSKFQCj-SnW');
+        const trackDetails = await this.driveService.uploadFile(track_file, '1jpr3et_SXXHrSpo8Dke0vlSKFQCj-SnW');
 
         track_id = trackDetails.id;
       }
@@ -52,6 +52,8 @@ export class AdminService {
       };
 
       await this.Tracks.create(sendTrackDetails);
+
+      return { message: 'track created' }
     } catch (error) {
       console.error(error);
       throw new HttpException('Incorrect request', HttpStatus.BAD_REQUEST);
