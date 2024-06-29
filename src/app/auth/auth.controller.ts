@@ -32,16 +32,10 @@ export class AuthController {
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
-    console.log(file);
     if (!file) {
       throw new Error('File not provided');
     }
-    return await this.driveService.uploadFile(file, "1Qf1SLGeXgckBKn3iKnvKkpStiRskp_kF");
-  }
-
-  @Get('get/:id')
-  async getFile(@Param('id') id: string, @Res() res) {
-    return await this.driveService.getFile(id, res);
+    return await this.driveService.uploadFile(file, "1gDCpD7ihayvw4v0v-Zb5k0YwC8mLnH5W");
   }
 
   @Delete('del/:id')

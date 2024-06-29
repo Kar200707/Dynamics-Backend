@@ -1,14 +1,14 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { google, drive_v3 } from 'googleapis';
 import { Readable } from 'stream';
-import { HttpService } from '@nestjs/axios';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class DriveService {
   private driveClient: drive_v3.Drive;
   private logger = new Logger(DriveService.name);
 
-  constructor(private readonly httpService: HttpService) {
+  constructor() {
     const auth = new google.auth.GoogleAuth({
       keyFile: './src/app/google/dynamics-9080b-9e2d8c312990.json',
       scopes: ['https://www.googleapis.com/auth/drive.file'],
@@ -24,31 +24,38 @@ export class DriveService {
     return readableInstanceStream;
   }
 
-  async getFile(fileId: string, res): Promise<Buffer> {
-    try {
-      const metadataResponse = await this.driveClient.files.get({
+  async getFile(fileId: string, res, called: string): Promise<void> {
+    const startTime = Date.now(); // Start timer
+
+    const metadataResponse = await this.driveClient.files.get({
+      fileId: fileId,
+      fields: 'mimeType',
+    });
+
+    const mimeType = metadataResponse.data.mimeType;
+
+    const response = await this.driveClient.files.get(
+      {
         fileId: fileId,
-        fields: 'mimeType',
-      });
+        alt: 'media',
+      },
+      { responseType: 'stream' }
+    );
 
-      const mimeType = metadataResponse.data.mimeType;
+    const endTime = Date.now();
 
-      const response = await this.driveClient.files.get(
-        {
-          fileId: fileId,
-          alt: 'media',
-        },
-        { responseType: 'arraybuffer' }
-      );
+    this.logger.log(`API Call Status: ${response.status}, Time Taken: ${endTime - startTime}ms`);
 
-      const buffer = Buffer.from(response.data as ArrayBuffer);
-
-      console.log('API Call Status:', response.status);
-
-      return res.status(HttpStatus.OK).contentType(mimeType).send(buffer);
-    } catch (error) {
-      this.logger.error(`Failed to get file content: ${error.message}`);
-      throw new HttpException(`Failed to get file content: ${error.message}`, HttpStatus.FOUND);
+    if (mimeType.startsWith('image')) {
+      res.setHeader('Content-Type', mimeType);
+      response.data.pipe(res);
+    } else {
+      if (called !== 'image') {
+        res.setHeader('Content-Type', mimeType);
+        response.data.pipe(res);
+      } else {
+        throw new HttpException('Image not found', HttpStatus.NOT_FOUND);
+      }
     }
   }
 
@@ -57,7 +64,7 @@ export class DriveService {
     try {
       const response = await this.driveClient.files.create({
         requestBody: {
-          name: file.originalname,
+          name: `${uuidv4()}.${file.originalname.split('.').pop()}`,
           parents: [folderId],
         },
         media: {
