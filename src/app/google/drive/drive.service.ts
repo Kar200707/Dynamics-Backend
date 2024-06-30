@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { google, drive_v3 } from 'googleapis';
 import { Readable } from 'stream';
 import { v4 as uuidv4 } from 'uuid';
+import * as stream from 'stream';
 
 @Injectable()
 export class DriveService {
@@ -24,35 +25,54 @@ export class DriveService {
     return readableInstanceStream;
   }
 
-  async getFile(fileId: string, res, called: string): Promise<void> {
+  async getFile(fileId: string, res, req, called: string): Promise<void> {
     const startTime = Date.now(); // Start timer
 
     const metadataResponse = await this.driveClient.files.get({
       fileId: fileId,
-      fields: 'mimeType',
+      fields: 'mimeType, size',
     });
 
     const mimeType = metadataResponse.data.mimeType;
+    const fileSize = parseInt(metadataResponse.data.size);
 
     const response = await this.driveClient.files.get(
       {
         fileId: fileId,
         alt: 'media',
       },
-      { responseType: 'stream' }
+      { responseType: 'arraybuffer' }
     );
 
     const endTime = Date.now();
+    const buffer = Buffer.from(response.data as ArrayBuffer);
 
     this.logger.log(`API Call Status: ${response.status}, Time Taken: ${endTime - startTime}ms`);
 
     if (mimeType.startsWith('image')) {
       res.setHeader('Content-Type', mimeType);
-      response.data.pipe(res);
+      return res.status(HttpStatus.OK).contentType(mimeType).send(buffer);
     } else {
-      if (called !== 'image') {
+      if (mimeType.startsWith('audio')) {
         res.setHeader('Content-Type', mimeType);
-        response.data.pipe(res);
+
+        const range = req.headers.range;
+        if (range) {
+          const parts = range.replace(/bytes=/, "").split("-");
+          const start = parseInt(parts[0], 10);
+          const end = parts[1]
+            ? parseInt(parts[1], 10)
+            : buffer.length - 1;
+          const chunksize = (end - start) + 1;
+          const fileChunk = buffer.slice(start, end + 1);
+
+          res.setHeader('Content-Range', `bytes ${start}-${end}/${buffer.length}`);
+          res.status(HttpStatus.PARTIAL_CONTENT).send(fileChunk);
+        } else {
+          res.status(HttpStatus.OK)
+            .send(buffer);
+        }
+        return res.status(HttpStatus.OK).contentType(mimeType).send(buffer);
       } else {
         throw new HttpException('Image not found', HttpStatus.NOT_FOUND);
       }
