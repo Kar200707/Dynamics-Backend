@@ -18,18 +18,13 @@ export class MediaService {
   }
 
   async getTrack(trackId: string, access_token: string, res, req) {
-    try {
-      // const user = await this.Users.findOne({ userLocalToken: access_token });
-      //
-      // if (user.id) {
-        return await this.driveSerivce.getFile(trackId, res, req, 'audio');
-      // } else {
-      //   throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
-      // }
-    } catch (error) {
-      console.log(error);
-      throw new HttpException('incorrectly request', HttpStatus.BAD_REQUEST);
-    }
+    // const user = await this.Users.findOne({ userLocalToken: access_token });
+    //
+    // if (user.id) {
+    return await this.driveSerivce.getFile(trackId, res, req, 'audio');
+    // } else {
+    //   throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
+    // }
   }
 
   async getFavoriteTracksList(access_token: string) {
