@@ -24,7 +24,7 @@ export class AuthService {
         let user: UserModel = {
           name: name,
           email: email,
-          avatar: '',
+          avatar: 'https://api-dynamics.adaptable.app/media/image/1rme9ayi_2N8WcCTYSdAwY-YZGsn3CMz7',
           bio: '',
           password: hashPass,
           artistFavorites: [],
