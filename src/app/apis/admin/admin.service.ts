@@ -16,11 +16,9 @@ export class AdminService {
 
   async addTrack(trackDetails, access_token: string, track_file: Express.Multer.File, image_file: Express.Multer.File) {
     try {
-      const user = await this.Users.findOne({ userLocalToken: access_token });
-
-      // if (!user) {
-      //   throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
-      // }
+      if (access_token !== '$2b$13$S8Cf8aEwAmwb70VdH5MUXuWA2QS6Lzq/z8ITwE74wv1HijpdTaxES') {
+        throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
+      }
 
       const duration = await mp3Duration(track_file.buffer);
 
@@ -48,7 +46,7 @@ export class AdminService {
         track_image: track_image,
         track_sound_id: track_id,
         track_duration: duration,
-        track_category: trackDetails.track_category,
+        track_category: JSON.parse(trackDetails.track_category),
       };
 
       await this.Tracks.create(sendTrackDetails);

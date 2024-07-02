@@ -24,7 +24,7 @@ export class Track {
   artist_id?: string;
 
   @Prop()
-  track_category?: string;
+  track_category?: string[];
 }
 
 export const TrackSchema = SchemaFactory.createForClass(Track);

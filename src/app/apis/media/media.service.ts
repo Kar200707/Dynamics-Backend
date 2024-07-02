@@ -27,6 +27,38 @@ export class MediaService {
     // }
   }
 
+  async getTrackByCategory (category: string, access_token: string) {
+    if (!access_token) {
+      throw new HttpException('Incorrect request', HttpStatus.BAD_REQUEST);
+    }
+
+    const user = await this.Users.findOne({ userLocalToken: access_token });
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    const tracksList = await this.Tracks.find({ track_category: { $in: [category] } });
+
+    return tracksList
+  }
+
+  async isFavoriteTrack(trackId: string, access_token: string): Promise<{ isFavorite: boolean }> {
+    if (!trackId || !access_token) {
+      throw new HttpException('Incorrect request', HttpStatus.BAD_REQUEST);
+    }
+
+    const user = await this.Users.findOne({ userLocalToken: access_token });
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    const isFavorite = user.trackFavorites.some(id => id === trackId);
+
+    return { isFavorite };
+  }
+
   async getFavoriteTracksList(access_token: string) {
     const user = await this.Users.findOne({ userLocalToken: access_token });
 
