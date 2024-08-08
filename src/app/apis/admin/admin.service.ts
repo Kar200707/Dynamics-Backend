@@ -3,14 +3,18 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Track, TrackDocument } from '../media/schemas/track-details.schema';
 import { User, UserDocument } from '../../auth/schemas/user.schema';
-import mp3Duration from 'mp3-duration';
 import { DriveService } from '../../google/drive/drive.service';
+import { DropboxStorageService } from '../../dropbox/dropbox-storage/dropbox-storage.service';
+import { extname } from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import mp3Duration from 'mp3-duration';
 
 @Injectable()
 export class AdminService {
 
   constructor(
     private driveService: DriveService,
+    private dropBoxService: DropboxStorageService,
     @InjectModel(Track.name) private readonly Tracks: Model<TrackDocument>,
     @InjectModel(User.name) private readonly Users: Model<UserDocument>) { }
 
@@ -25,9 +29,16 @@ export class AdminService {
       let track_image: string;
 
       if (image_file) {
-        const imageDetails = await this.driveService.uploadFile(image_file, '1xM12q3YXBqKy0aMrKj2pBie0TbiZwxXI');
+        const fileExtension = extname(track_file.originalname).slice(1);
+        const track_full_name:string = `${Date.now()}.${fileExtension}`;
 
-        track_image = `https://api-dynamics.adaptable.app/media/image/${ imageDetails.id }`;
+        const response = await this.dropBoxService.uploadFile(
+          track_full_name.toLowerCase(),
+          image_file.buffer,
+          '/images'
+        );
+
+        track_image = `http://localhost:8080/media/image/${ response.result.id }`;
       } else {
         track_image = trackDetails.track_image_url;
       }
@@ -35,9 +46,16 @@ export class AdminService {
       let track_id: string;
 
       if (track_file) {
-        const trackDetails = await this.driveService.uploadFile(track_file, '1jpr3et_SXXHrSpo8Dke0vlSKFQCj-SnW');
+        const fileExtension = extname(track_file.originalname).slice(1);
+        const track_full_name:string = `${trackDetails.track_artist}-${trackDetails.track_name}.${fileExtension}`;
 
-        track_id = trackDetails.id;
+        const response = await this.dropBoxService.uploadFile(
+          track_full_name.toLowerCase(),
+          track_file.buffer,
+          '/tracks'
+        );
+
+        track_id = response.result.id;
       }
 
       const sendTrackDetails = {

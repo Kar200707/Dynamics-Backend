@@ -7,13 +7,15 @@ export class MediaController {
   constructor(private mediaService: MediaService) {  }
 
   @Get('image/:id')
-  async getImage(@Param('id') id: string, @Req() req, @Res() res) {
-    return await this.mediaService.getImage(id, res, req);
+  async getImage(@Param('id') id: string, @Res() res) {
+    const url:string = await this.mediaService.getFile(id);
+    res.redirect(url);
   }
 
   @Get('track/:id')
-  async getTrack(@Param('id') id: string, @Res() res, @Req() req, @Body() body: { access_token: string }) {
-    return await this.mediaService.getTrack(id, body.access_token, res, req);
+  async getTrack(@Param('id') id: string, @Res() res) {
+    const url:string = await this.mediaService.getFile(id);
+    res.redirect(url);
   }
 
   @Post('track-details/add-favorites')

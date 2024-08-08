@@ -1,8 +1,7 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { google, drive_v3 } from 'googleapis';
 import { Readable } from 'stream';
-import { v4 as uuidv4 } from 'uuid';
-import * as stream from 'stream';
+import { v4 as uuidv4 } from 'uuid';;
 import { HttpService } from '@nestjs/axios';
 
 @Injectable()
@@ -39,6 +38,7 @@ export class DriveService {
   async getFile(fileId: string, res, req, called: string): Promise<void> {
     const metadataResponse = await this.driveClient.files.get({
       fileId: fileId,
+      supportsAllDrives: true,
       fields: 'mimeType',
     });
 

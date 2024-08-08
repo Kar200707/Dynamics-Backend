@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../../auth/schemas/user.schema';
 import { Model } from 'mongoose';
 import { Track, TrackDocument } from './schemas/track-details.schema';
+import { DropboxStorageService } from '../../dropbox/dropbox-storage/dropbox-storage.service';
 
 @Injectable()
 export class MediaService {
@@ -11,20 +12,15 @@ export class MediaService {
   constructor(
     @InjectModel(Track.name) private readonly Tracks: Model<TrackDocument>,
     @InjectModel(User.name) private readonly Users: Model<UserDocument>,
+    private dropBoxService: DropboxStorageService,
     private driveSerivce: DriveService) {  }
 
-  async getImage(fileId:string, res, req) {
-    return await this.driveSerivce.getFile(fileId, res, req, 'image');
+  async getImage(fileId:string) {
+    return await this.dropBoxService.getFile(fileId);
   }
 
-  async getTrack(trackId: string, access_token: string, res, req) {
-    // const user = await this.Users.findOne({ userLocalToken: access_token });
-    //
-    // if (user.id) {
-    return await this.driveSerivce.getFile(trackId, res, req, 'audio');
-    // } else {
-    //   throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
-    // }
+  async getFile(trackId: string) {
+    return await this.dropBoxService.getFile(trackId);
   }
 
   async getTrackByCategory (category: string, access_token: string) {

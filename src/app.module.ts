@@ -7,6 +7,7 @@ import { AuthModule } from './app/auth/auth.module';
 import { UserModule } from './app/apis/user/user.module';
 import { MediaModule } from './app/apis/media/media.module';
 import { AdminModule } from './app/apis/admin/admin.module';
+import { DropboxStorageService } from './app/dropbox/dropbox-storage/dropbox-storage.service';
 
 @Module({
   imports: [
@@ -22,6 +23,6 @@ import { AdminModule } from './app/apis/admin/admin.module';
     AdminModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, DropboxStorageService],
 })
 export class AppModule {}

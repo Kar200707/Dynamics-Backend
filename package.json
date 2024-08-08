@@ -34,11 +34,13 @@
     "@types/validator": "^13.12.0",
     "axios": "^1.7.2",
     "bcrypt": "^5.1.1",
+    "dropbox": "^10.34.0",
     "get-audio-duration": "^4.0.1",
     "googleapis": "^140.0.0",
     "mongoose": "^8.4.0",
     "mp3-duration": "^1.1.0",
     "rxjs": "^7.8.1",
+    "uuid": "^10.0.0",
     "validator": "^13.12.0"
   },
   "devDependencies": {

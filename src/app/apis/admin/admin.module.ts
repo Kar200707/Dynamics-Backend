@@ -6,10 +6,11 @@ import { User, UsersSchema } from '../../auth/schemas/user.schema';
 import { Track, TrackSchema } from '../media/schemas/track-details.schema';
 import { DriveService } from '../../google/drive/drive.service';
 import { HttpModule } from '@nestjs/axios';
+import { DropboxStorageService } from '../../dropbox/dropbox-storage/dropbox-storage.service';
 
 @Module({
   controllers: [AdminController],
-  providers: [AdminService, DriveService],
+  providers: [AdminService, DropboxStorageService, DriveService],
   imports: [
     HttpModule,
     MongooseModule.forFeature([
