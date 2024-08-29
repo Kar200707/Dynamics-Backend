@@ -58,6 +58,11 @@ export class YoutubeDataService {
       const videoReadableStream = ytdl(url, {
         filter: 'audioonly',
         quality: 'highestaudio',
+        requestOptions: {
+          headers: {
+            'User-Agent': 'Dynamics/1.0 (harutyunyan2007karen@gmail.com)'
+          }
+        }
       });
 
       const passThroughStream = new PassThrough();
