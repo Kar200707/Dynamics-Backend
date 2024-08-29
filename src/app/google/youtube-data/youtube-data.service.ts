@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { google, youtube_v3 } from 'googleapis';
 import ytdl from '@distube/ytdl-core';
 import ytSearch from 'yt-search';
+import { PassThrough } from 'stream';
 
 @Injectable()
 export class YoutubeDataService {
@@ -23,7 +24,8 @@ export class YoutubeDataService {
       const results = await ytSearch(query);
       return results.videos.slice(0, 5);
     } catch (error) {
-      console.log('Error searching YouTube:', error.message);
+      this.logger.error('Error searching YouTube:', error.message);
+      throw new HttpException('Error searching YouTube', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -45,7 +47,7 @@ export class YoutubeDataService {
     }
   }
 
-  async streamAudio(videoId: string) {
+  async streamAudio(videoId: string): Promise<PassThrough> {
     const url: string = `https://www.youtube.com/watch?v=${videoId}`;
 
     if (!ytdl.validateURL(url)) {
@@ -55,16 +57,28 @@ export class YoutubeDataService {
     try {
       const videoReadableStream = ytdl(url, {
         filter: 'audioonly',
-        quality: 'highest',
+        quality: 'highestaudio',
       });
 
-      return new Promise<Buffer>((resolve, reject) => {
-        const chunks: Buffer[] = [];
-        videoReadableStream.on('data', (chunk) => chunks.push(chunk));
-        videoReadableStream.on('end', () => resolve(Buffer.concat(chunks)));
-        videoReadableStream.on('error', (err) => reject(err));
+      const passThroughStream = new PassThrough();
+
+      videoReadableStream.on('data', (chunk) => {
+        this.logger.log('Received chunk of data');
       });
+
+      videoReadableStream.on('end', () => {
+        this.logger.log('Stream ended');
+      });
+
+      videoReadableStream.on('error', (err) => {
+        this.logger.error('Stream error:', err);
+      });
+
+      videoReadableStream.pipe(passThroughStream);
+
+      return passThroughStream;
     } catch (error) {
+      this.logger.error(`Failed to stream audio: ${error.message}`);
       throw new HttpException(`Failed to stream audio: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
