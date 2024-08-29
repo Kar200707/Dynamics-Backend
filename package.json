@@ -21,7 +21,6 @@
   },
   "dependencies": {
     "@distube/ytdl-core": "^4.14.4",
-    "@ffprobe-installer/ffprobe": "^2.1.2",
     "@google-cloud/storage": "^7.11.2",
     "@googleapis/drive": "^8.10.0",
     "@nestjs/axios": "^3.0.2",
@@ -35,7 +34,6 @@
     "@types/validator": "^13.12.0",
     "axios": "^1.7.2",
     "bcrypt": "^5.1.1",
-    "dropbox": "^10.34.0",
     "get-audio-duration": "^4.0.1",
     "googleapis": "^140.0.0",
     "mongoose": "^8.4.0",

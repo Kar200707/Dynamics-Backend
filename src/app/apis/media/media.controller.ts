@@ -8,14 +8,14 @@ export class MediaController {
 
   @Get('image/:id')
   async getImage(@Param('id') id: string, @Res() res) {
-    const url:string = await this.mediaService.getFile(id);
-    res.redirect(url);
+    // const url:string = await this.mediaService.getFile(id);
+    // res.redirect(url);
   }
 
   @Get('track/:id')
   async getTrack(@Param('id') id: string, @Res() res) {
-    const url:string = await this.mediaService.getFile(id);
-    res.redirect(url);
+    // const url:string = await this.mediaService.getFile(id);
+    // res.redirect(url);
   }
 
   @Post('track-details/add-favorites')

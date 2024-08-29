@@ -4,7 +4,6 @@ import { Model } from 'mongoose';
 import { Track, TrackDocument } from '../media/schemas/track-details.schema';
 import { User, UserDocument } from '../../auth/schemas/user.schema';
 import { DriveService } from '../../google/drive/drive.service';
-import { DropboxStorageService } from '../../dropbox/dropbox-storage/dropbox-storage.service';
 import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import mp3Duration from 'mp3-duration';
@@ -14,7 +13,6 @@ export class AdminService {
 
   constructor(
     private driveService: DriveService,
-    private dropBoxService: DropboxStorageService,
     @InjectModel(Track.name) private readonly Tracks: Model<TrackDocument>,
     @InjectModel(User.name) private readonly Users: Model<UserDocument>) { }
 
@@ -32,13 +30,13 @@ export class AdminService {
         const fileExtension = extname(track_file.originalname).slice(1);
         const track_full_name:string = `${Date.now()}.${fileExtension}`;
 
-        const response = await this.dropBoxService.uploadFile(
-          track_full_name.toLowerCase(),
-          image_file.buffer,
-          '/images'
-        );
+        // const response = await this.dropBoxService.uploadFile(
+        //   track_full_name.toLowerCase(),
+        //   image_file.buffer,
+        //   '/images'
+        // );
 
-        track_image = `http://localhost:8080/media/image/${ response.result.id }`;
+        // track_image = `http://localhost:8080/media/image/${ response.result.id }`;
       } else {
         track_image = trackDetails.track_image_url;
       }
@@ -49,13 +47,13 @@ export class AdminService {
         const fileExtension = extname(track_file.originalname).slice(1);
         const track_full_name:string = `${trackDetails.track_artist}-${trackDetails.track_name}.${fileExtension}`;
 
-        const response = await this.dropBoxService.uploadFile(
-          track_full_name.toLowerCase(),
-          track_file.buffer,
-          '/tracks'
-        );
+        // const response = await this.dropBoxService.uploadFile(
+        //   track_full_name.toLowerCase(),
+        //   track_file.buffer,
+        //   '/tracks'
+        // );
 
-        track_id = response.result.id;
+        // track_id = response.result.id;
       }
 
       const sendTrackDetails = {

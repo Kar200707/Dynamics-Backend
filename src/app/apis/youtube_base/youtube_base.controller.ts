@@ -16,6 +16,7 @@ export class YoutubeBaseController {
   @Get('get-stream/:id')
   async getStream(@Param('id') trackId: string, @Res() res, @Req() req) {
     try {
+      console.log(trackId);
       const videoBuffer = await this.youtubeBase.streamAudio(trackId);
       res.set({
         'Content-Type': 'audio/mpeg',
