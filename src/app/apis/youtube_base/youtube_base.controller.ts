@@ -9,7 +9,7 @@ export class YoutubeBaseController {
 
 
   @Post('search')
-  async searchTest(@Body() body: { searchText: string }) {
+  async search(@Body() body: { searchText: string }) {
     return await this.youtubeBase.getVideoList(body.searchText);
   }
 
@@ -38,7 +38,7 @@ export class YoutubeBaseController {
         res.send(videoBuffer);
       }
     } catch (error) {
-      res.status(400).send(error.message);
+      res.status(400).send({ message: error.message});
     }
   }
 }

@@ -21,7 +21,6 @@ export class YoutubeDataService {
   async getVideoList(query: string): Promise<any> {
     try {
       const results = await ytSearch(query);
-      console.log(results);
       return results.videos.slice(0, 5);
     } catch (error) {
       console.log('Error searching YouTube:', error.message);
@@ -47,18 +46,26 @@ export class YoutubeDataService {
   }
 
   async streamAudio(videoId: string) {
-    const url = `https://www.youtube.com/watch?v=${videoId}`;
+    const url: string = `https://www.youtube.com/watch?v=${videoId}`;
+
     if (!ytdl.validateURL(url)) {
-      throw new Error('Invalid YouTube URL');
+      throw new HttpException('Invalid YouTube URL', HttpStatus.BAD_REQUEST);
     }
 
-    const videoReadableStream = ytdl(url, { filter: 'audioonly' });
+    try {
+      const videoReadableStream = ytdl(url, {
+        filter: 'audioonly',
+        quality: 'highest',
+      });
 
-    return new Promise<Buffer>((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      videoReadableStream.on('data', (chunk) => chunks.push(chunk));
-      videoReadableStream.on('end', () => resolve(Buffer.concat(chunks)));
-      videoReadableStream.on('error', (err) => reject(err));
-    });
+      return new Promise<Buffer>((resolve, reject) => {
+        const chunks: Buffer[] = [];
+        videoReadableStream.on('data', (chunk) => chunks.push(chunk));
+        videoReadableStream.on('end', () => resolve(Buffer.concat(chunks)));
+        videoReadableStream.on('error', (err) => reject(err));
+      });
+    } catch (error) {
+      throw new HttpException(`Failed to stream audio: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }
