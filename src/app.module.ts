@@ -8,6 +8,9 @@ import { UserModule } from './app/apis/user/user.module';
 import { MediaModule } from './app/apis/media/media.module';
 import { AdminModule } from './app/apis/admin/admin.module';
 import { DropboxStorageService } from './app/dropbox/dropbox-storage/dropbox-storage.service';
+import { YoutubeDataService } from './app/google/youtube-data/youtube-data.service';
+import { HttpModule } from '@nestjs/axios';
+import { YoutubeBaseModule } from './app/apis/youtube_base/youtube_base.module';
 
 @Module({
   imports: [
@@ -21,8 +24,9 @@ import { DropboxStorageService } from './app/dropbox/dropbox-storage/dropbox-sto
     UserModule,
     MediaModule,
     AdminModule,
+    YoutubeBaseModule,
   ],
   controllers: [AppController],
-  providers: [AppService, DropboxStorageService],
+  providers: [AppService, DropboxStorageService, YoutubeDataService, HttpModule],
 })
 export class AppModule {}
