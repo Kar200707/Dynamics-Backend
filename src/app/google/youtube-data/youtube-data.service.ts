@@ -2,22 +2,12 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { google, youtube_v3 } from 'googleapis';
 import ytdl from '@distube/ytdl-core';
 import ytSearch from 'yt-search';
-import { PassThrough } from 'stream';
 
 @Injectable()
 export class YoutubeDataService {
-  private youtubeClient: youtube_v3.Youtube;
-  private logger = new Logger(YoutubeDataService.name);
-  private readonly apiKey: string;
+  private logger:Logger = new Logger(YoutubeDataService.name);
 
-  constructor() {
-    this.apiKey = process.env.YOUTUBE_API_KEY;
-    if (!this.apiKey) {
-      throw new Error('YouTube API key is not set in environment variables.');
-    }
-
-    this.youtubeClient = google.youtube({ version: 'v3', auth: this.apiKey });
-  }
+  constructor() {}
 
   async getVideoList(query: string): Promise<any> {
     try {
@@ -29,25 +19,7 @@ export class YoutubeDataService {
     }
   }
 
-  async getVideoDetails(videoId: string): Promise<any> {
-    try {
-      const response = await this.youtubeClient.videos.list({
-        part: ['snippet', 'contentDetails', 'statistics'],
-        id: [videoId]
-      });
-
-      if (response.data.items.length === 0) {
-        throw new HttpException('Video not found', HttpStatus.NOT_FOUND);
-      }
-
-      return response.data.items[0];
-    } catch (error) {
-      this.logger.error(`Failed to get video details: ${error.message}`);
-      throw new HttpException(`Failed to get video details: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  async streamAudio(videoId: string): Promise<PassThrough> {
+  async streamAudio(videoId: string): Promise<Buffer> {
     const url: string = `https://www.youtube.com/watch?v=${videoId}`;
 
     if (!ytdl.validateURL(url)) {
@@ -60,28 +32,26 @@ export class YoutubeDataService {
         quality: 'highestaudio',
         requestOptions: {
           headers: {
-            'User-Agent': 'Dynamics/1.0 (harutyunyan2007karen@gmail.com)'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
           }
         }
       });
 
-      const passThroughStream = new PassThrough();
+      const chunks: Buffer[] = [];
+      return new Promise<Buffer>((resolve, reject) => {
+        videoReadableStream.on('data', (chunk: Buffer) => {
+          chunks.push(chunk);
+        });
 
-      videoReadableStream.on('data', (chunk) => {
-        this.logger.log('Received chunk of data');
+        videoReadableStream.on('end', () => {
+          resolve(Buffer.concat(chunks));
+        });
+
+        videoReadableStream.on('error', (err) => {
+          this.logger.error('Stream error:', err);
+          reject(new HttpException('Failed to stream audio', HttpStatus.INTERNAL_SERVER_ERROR));
+        });
       });
-
-      videoReadableStream.on('end', () => {
-        this.logger.log('Stream ended');
-      });
-
-      videoReadableStream.on('error', (err) => {
-        this.logger.error('Stream error:', err);
-      });
-
-      videoReadableStream.pipe(passThroughStream);
-
-      return passThroughStream;
     } catch (error) {
       this.logger.error(`Failed to stream audio: ${error.message}`);
       throw new HttpException(`Failed to stream audio: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
