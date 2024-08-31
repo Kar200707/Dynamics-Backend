@@ -32,7 +32,7 @@ export class YoutubeDataService {
         quality: 'highestaudio',
         requestOptions: {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:113.0) Gecko/20100101 Firefox/113.0'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
           }
         }
       });
@@ -40,10 +40,12 @@ export class YoutubeDataService {
       const chunks: Buffer[] = [];
       return new Promise<Buffer>((resolve, reject) => {
         videoReadableStream.on('data', (chunk: Buffer) => {
+          this.logger.log(`Received chunk of size: ${chunk.length}`);
           chunks.push(chunk);
         });
 
         videoReadableStream.on('end', () => {
+          this.logger.log('Stream ended.');
           resolve(Buffer.concat(chunks));
         });
 
