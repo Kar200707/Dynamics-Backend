@@ -51,7 +51,7 @@ export class YoutubeDataService {
 
         videoReadableStream.on('error', (err) => {
           this.logger.error('Stream error:', err);
-          reject(new HttpException('Failed to stream audio', HttpStatus.INTERNAL_SERVER_ERROR));
+          reject(new HttpException(`Failed to stream audio: ${err}`, HttpStatus.INTERNAL_SERVER_ERROR));
         });
       });
     } catch (error) {
