@@ -3,6 +3,8 @@ import { google, youtube_v3 } from 'googleapis';
 import ytdl from '@distube/ytdl-core';
 import ytSearch from 'yt-search';
 import * as fs from 'node:fs';
+import puppeteer from 'puppeteer';
+import axios from 'axios';
 
 @Injectable()
 export class YoutubeDataService {
@@ -20,7 +22,7 @@ export class YoutubeDataService {
     }
   }
 
-  async streamAudio(videoId: string): Promise<Buffer> {
+  async streamAudio(videoId: string) {
     const url: string = `https://www.youtube.com/watch?v=${videoId}`;
 
     if (!ytdl.validateURL(url)) {
@@ -37,7 +39,12 @@ export class YoutubeDataService {
       const videoReadableStream = ytdl(url, {
         filter: 'audioonly',
         quality: 'highestaudio',
-        agent
+        agent: agent,
+        requestOptions: {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          }
+        }
       });
 
       const chunks: Buffer[] = [];
