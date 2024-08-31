@@ -21,22 +21,26 @@ export class YoutubeDataService {
   }
 
   async streamAudio(videoId: string): Promise<Buffer> {
-    const url: string = `https://www.youtube.com/watch?v=${videoId}`;
+    const url = `https://www.youtube.com/watch?v=${videoId}`;
 
     if (!ytdl.validateURL(url)) {
+      this.logger.error('Invalid YouTube URL');
       throw new HttpException('Invalid YouTube URL', HttpStatus.BAD_REQUEST);
     }
 
     const cookiesFileContent = fs.readFileSync('cookes.json', 'utf8');
     const cookies = JSON.parse(cookiesFileContent);
 
-    const agent = ytdl.createAgent(cookies);
-    console.log(agent);
-
     try {
+      this.logger.log('Starting audio stream...');
       const videoReadableStream = ytdl(url, {
         filter: 'audioonly',
         quality: 'highestaudio',
+        requestOptions: {
+          headers: {
+            'Cookie': cookies.map((cookie: any) => `${cookie.name}=${cookie.value}`).join('; ')
+          }
+        }
       });
 
       const chunks: Buffer[] = [];
