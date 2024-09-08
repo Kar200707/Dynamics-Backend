@@ -20,7 +20,6 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@distube/ytdl-core": "^4.14.4",
     "@google-cloud/storage": "^7.11.2",
     "@googleapis/drive": "^8.10.0",
     "@lunuy/yt-mp3": "^1.2.0",
@@ -33,6 +32,7 @@
     "@types/fluent-ffmpeg": "^2.1.24",
     "@types/musicmetadata": "^2.0.9",
     "@types/validator": "^13.12.0",
+    "@ybd-project/ytdl-core": "^5.0.20",
     "axios": "^1.7.2",
     "bcrypt": "^5.1.1",
     "get-audio-duration": "^4.0.1",

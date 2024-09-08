@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { google, youtube_v3 } from 'googleapis';
-import ytdl from '@distube/ytdl-core';
+// import ytdl from '@distube/ytdl-core';
+import ytdl from '@ybd-project/ytdl-core';
 import ytSearch from 'yt-search';
 import * as fs from 'node:fs';
 import puppeteer from 'puppeteer';
@@ -33,19 +34,12 @@ export class YoutubeDataService {
     const cookies = JSON.parse(cookiesFileContent);
 
     const agent = ytdl.createAgent(cookies);
-    console.log(agent);
 
     try {
       const videoReadableStream = ytdl(url, {
         filter: 'audioonly',
         quality: 'highestaudio',
-        agent: agent,
-        requestOptions: {
-          headers: {
-            "cookie": cookiesFileContent,
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-          }
-        }
+        agent: agent
       });
 
       const chunks: Buffer[] = [];
