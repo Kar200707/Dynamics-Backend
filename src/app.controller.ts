@@ -39,18 +39,4 @@ export class AppController {
   async searchTest(@Query('q') query) {
     return await this.youtube.getVideoList(query);
   }
-
-  @Get('hello/mp3')
-  async getTest(@Body() body: { videoId: string }, @Res() res) {
-    try {
-      const videoBuffer = await this.youtube.streamAudio(body.videoId);
-      res.set({
-        'Content-Type': 'audio/mpeg',
-        'Content-Disposition': 'attachment; filename="video.mp3"',
-      });
-      res.send(videoBuffer);
-    } catch (error) {
-      res.status(400).send(error.message);
-    }
-  }
 }

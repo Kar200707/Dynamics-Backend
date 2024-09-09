@@ -1,17 +1,16 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { google, youtube_v3 } from 'googleapis';
-// import ytdl from '@distube/ytdl-core';
-import ytdl from '@ybd-project/ytdl-core';
+import { YtdlCore } from '@ybd-project/ytdl-core';
+import { Request, Response } from 'express';
 import ytSearch from 'yt-search';
-import * as fs from 'node:fs';
-import puppeteer from 'puppeteer';
-import axios from 'axios';
 
 @Injectable()
 export class YoutubeDataService {
-  private logger:Logger = new Logger(YoutubeDataService.name);
+  private logger: Logger = new Logger(YoutubeDataService.name);
+  private ytdl: YtdlCore;
 
-  constructor() {}
+  constructor() {
+    this.ytdl = new YtdlCore();
+  }
 
   async getVideoList(query: string): Promise<any> {
     try {
@@ -23,41 +22,35 @@ export class YoutubeDataService {
     }
   }
 
-  async streamAudio(videoId: string) {
+
+  async streamAudio(videoId: string, req: Request, res: Response) {
     const url: string = `https://www.youtube.com/watch?v=${videoId}`;
 
-    if (!ytdl.validateURL(url)) {
-      throw new HttpException('Invalid YouTube URL', HttpStatus.BAD_REQUEST);
-    }
-
-    const cookiesFileContent = fs.readFileSync('cookes.json', 'utf8');
-    const cookies = JSON.parse(cookiesFileContent);
-
-    const agent = ytdl.createAgent(cookies);
-
     try {
-      const videoReadableStream = ytdl(url, {
-        filter: 'audioonly',
-        quality: 'highestaudio',
-        agent: agent
-      });
+       res.setHeader('Content-Type', 'audio/mpeg');
 
       const chunks: Buffer[] = [];
-      return new Promise<Buffer>((resolve, reject) => {
-        videoReadableStream.on('data', (chunk: Buffer) => {
-          chunks.push(chunk);
-        });
 
-        videoReadableStream.on('end', () => {
-          this.logger.log('Stream ended.');
-          resolve(Buffer.concat(chunks));
-        });
-
-        videoReadableStream.on('error', (err) => {
-          this.logger.error('Stream error:', err);
-          reject(new HttpException(`Failed to stream audio: ${err}`, HttpStatus.INTERNAL_SERVER_ERROR));
-        });
+      const videoReadableStream = this.ytdl.download(url, {
+        filter: 'audioandvideo',
+        quality: 'highestaudio'
       });
+
+      videoReadableStream.on('data', (chunk) => {
+        chunks.push(chunk);
+      });
+
+      videoReadableStream.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+
+        res.end(buffer);
+      });
+
+      videoReadableStream.on('error', (error) => {
+        this.logger.error('Error streaming audio:', error.message);
+        res.status(500).send('Error streaming YouTube audio');
+      });
+
     } catch (error) {
       this.logger.error(`Failed to stream audio: ${error.message}`);
       throw new HttpException(`Failed to stream audio: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
