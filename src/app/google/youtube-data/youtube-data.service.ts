@@ -27,30 +27,51 @@ export class YoutubeDataService {
     const url: string = `https://www.youtube.com/watch?v=${videoId}`;
 
     try {
-       res.setHeader('Content-Type', 'audio/webm');
+      // Set initial response headers
+      res.setHeader('Content-Type', 'audio/webm');
 
-      const chunks: Buffer[] = [];
-
-      const videoReadableStream = this.ytdl.download(url, {
+      // Create a video stream
+      const videoStream = this.ytdl.download(url, {
         filter: 'audioonly',
         quality: 'highestaudio'
       });
 
-      videoReadableStream.on('data', (chunk) => {
-        chunks.push(chunk);
-      });
+      // Handle range requests
+      const range = req.headers.range;
+      if (range) {
+        const [start, end] = range.replace(/bytes=/, "").split("-");
+        const startByte = parseInt(start, 10);
+        const endByte = end ? parseInt(end, 10) : undefined;
 
-      videoReadableStream.on('end', () => {
-        const buffer = Buffer.concat(chunks);
+        // Send the appropriate range of bytes
+        videoStream.on('response', (response) => {
+          const totalBytes = parseInt(response.headers['content-length'], 10);
+          const chunkSize = (endByte !== undefined ? endByte - startByte + 1 : totalBytes - startByte);
 
-        res.end(buffer);
-      });
+          res.setHeader('Content-Range', `bytes ${startByte}-${endByte || (totalBytes - 1)}/${totalBytes}`);
+          res.setHeader('Content-Length', chunkSize);
+          res.status(HttpStatus.PARTIAL_CONTENT);
 
-      videoReadableStream.on('error', (error) => {
-        this.logger.error('Error streaming audio:', error.message);
-        res.status(500).send('Error streaming YouTube audio');
-      });
+          // Adjust the stream to start at the requested byte range
+          videoStream.pipe(res, { end: false });
+          videoStream.on('end', () => {
+            res.end();
+          });
+        });
 
+        videoStream.on('error', (error) => {
+          this.logger.error('Error streaming audio:', error.message);
+          res.status(500).send('Error streaming YouTube audio');
+        });
+      } else {
+        // Handle full stream if no range is requested
+        videoStream.pipe(res);
+
+        videoStream.on('error', (error) => {
+          this.logger.error('Error streaming audio:', error.message);
+          res.status(500).send('Error streaming YouTube audio');
+        });
+      }
     } catch (error) {
       this.logger.error(`Failed to stream audio: ${error.message}`);
       throw new HttpException(`Failed to stream audio: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
