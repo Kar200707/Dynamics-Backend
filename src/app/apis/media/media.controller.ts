@@ -6,25 +6,18 @@ export class MediaController {
 
   constructor(private mediaService: MediaService) {  }
 
-  @Get('image/:id')
-  async getImage(@Param('id') id: string, @Res() res) {
-    // const url:string = await this.mediaService.getFile(id);
-    // res.redirect(url);
-  }
-
-  @Get('track/:id')
-  async getTrack(@Param('id') id: string, @Res() res) {
-    // const url:string = await this.mediaService.getFile(id);
-    // res.redirect(url);
-  }
-
   @Post('track-details/add-favorites')
   async addFavoritesTrack(@Body() body: { access_token: string, trackId: string }) {
     return await this.mediaService.addFavoriteTracks(body.trackId, body.access_token);
   }
 
+  @Post('track-details/rem-favorites')
+  async remFavoritesTrack(@Body() body: { access_token: string, trackId: string }) {
+    return await this.mediaService.remFavoriteTracks(body.trackId, body.access_token);
+  }
+
   @Post('track-details/get-favorites-list')
-  async getFavoritesTrackList(@Body() body: { access_token: string, trackId: string }) {
+  async getFavoritesTrackList(@Body() body: { access_token: string }) {
     return await this.mediaService.getFavoriteTracksList(body.access_token);
   }
 

@@ -6,10 +6,11 @@ import { User, UsersSchema } from '../../auth/schemas/user.schema';
 import { DriveService } from '../../google/drive/drive.service';
 import { Track, TrackSchema } from './schemas/track-details.schema';
 import { HttpModule, HttpService } from '@nestjs/axios';
+import { YoutubeDataService } from '../../google/youtube-data/youtube-data.service';
 
 @Module({
   controllers: [MediaController],
-  providers: [MediaService, DriveService],
+  providers: [MediaService, DriveService, YoutubeDataService],
   imports: [
     HttpModule,
     MongooseModule.forFeature([

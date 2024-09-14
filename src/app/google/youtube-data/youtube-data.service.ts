@@ -12,7 +12,13 @@ export class YoutubeDataService {
     this.ytdl = new YtdlCore();
   }
 
-  async getVideoList(query: string): Promise<any> {
+  async getVideoDetailsById(id: string) {
+    const url: string = `https://www.youtube.com/watch?v=${id}`;
+    const details = await this.ytdl.getBasicInfo(url);
+    return details;
+  }
+
+  async getVideoSearchList(query: string): Promise<any> {
     try {
       const results = await ytSearch(query);
       return results.videos.slice(0, 5);
@@ -21,7 +27,6 @@ export class YoutubeDataService {
       throw new HttpException('Error searching YouTube', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
 
   async streamAudio(videoId: string, req: Request, res: Response) {
     const url: string = `https://www.youtube.com/watch?v=${videoId}`;

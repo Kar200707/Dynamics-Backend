@@ -9,7 +9,12 @@ export class YoutubeBaseController {
 
   @Post('search')
   async search(@Body() body: { searchText: string }) {
-    return await this.youtubeBase.getVideoList(body.searchText);
+    return await this.youtubeBase.getVideoSearchList(body.searchText);
+  }
+
+  @Post('get-details/:id')
+  async getDetails(@Param('id') trackId: string) {
+    return this.youtubeBase.getVideoDetailsById(trackId);
   }
 
   @Get('get-stream/:id')
