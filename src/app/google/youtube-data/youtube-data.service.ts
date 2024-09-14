@@ -27,7 +27,7 @@ export class YoutubeDataService {
     const url: string = `https://www.youtube.com/watch?v=${videoId}`;
 
     try {
-       res.setHeader('Content-Type', 'audio/mp4');
+       res.setHeader('Content-Type', 'audio/webm');
 
       const chunks: Buffer[] = [];
 
