@@ -11,6 +11,16 @@ export class MediaController {
     return await this.mediaService.addFavoriteTracks(body.trackId, body.access_token);
   }
 
+  @Post('set-play-history')
+  async setPlayHistory(@Body() body: { access_token: string, trackId: string }) {
+    return await this.mediaService.setPlayHistory(body.trackId, body.access_token);
+  }
+
+  @Post('get-play-history')
+  async getPlayHistory(@Body() body: { access_token: string }) {
+    return await this.mediaService.getHistoryTracks(body.access_token);
+  }
+
   @Post('track-details/rem-favorites')
   async remFavoritesTrack(@Body() body: { access_token: string, trackId: string }) {
     return await this.mediaService.remFavoriteTracks(body.trackId, body.access_token);

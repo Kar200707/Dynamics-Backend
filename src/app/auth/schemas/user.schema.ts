@@ -24,7 +24,20 @@ export class User {
   devicesId: string[];
 
   @Prop()
-  trackFavorites: string[];
+  trackFavorites: [
+    {
+      trackId: string,
+      addedAt: number
+    }
+  ];
+
+  @Prop()
+  playHistory: [
+    {
+      trackId: string,
+      addedAt: number
+    }
+  ];
 
   @Prop()
   artistFavorites: string[];
