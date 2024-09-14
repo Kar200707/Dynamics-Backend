@@ -27,12 +27,12 @@ export class YoutubeDataService {
     const url: string = `https://www.youtube.com/watch?v=${videoId}`;
 
     try {
-       res.setHeader('Content-Type', 'audio/mpeg');
+       res.setHeader('Content-Type', 'audio/mp4');
 
       const chunks: Buffer[] = [];
 
       const videoReadableStream = this.ytdl.download(url, {
-        filter: 'audioandvideo',
+        filter: 'audioonly',
         quality: 'highestaudio'
       });
 
