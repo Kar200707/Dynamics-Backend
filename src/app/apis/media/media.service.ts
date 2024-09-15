@@ -138,6 +138,51 @@ export class MediaService {
     }
   }
 
+  async setSearchHistory(text: string, access_token: string) {
+    if (!text || !access_token) {
+      throw new HttpException('Invalid trackId or access_token', HttpStatus.BAD_REQUEST);
+    }
+
+    const user = await this.Users.findOne({ userLocalToken: access_token });
+    if (user) {
+      const addedUser: any = user.toObject();
+
+      const existingIndex = addedUser.searchHistory.findIndex(entry => entry.text === text);
+
+      if (existingIndex !== -1) {
+        addedUser.searchHistory.splice(existingIndex, 1);
+      }
+
+      addedUser.searchHistory.unshift({
+        text: text,
+        addedAt: Date.now()
+      });
+
+      if (addedUser.searchHistory.length > 10) {
+        addedUser.searchHistory = addedUser.searchHistory.slice(0, 10);
+      }
+
+      await this.Users.findOneAndUpdate(
+        { userLocalToken: access_token },
+        { searchHistory: addedUser.searchHistory }
+      );
+
+      return { message: 'search added to history' };
+    } else {
+      throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getSearchHistory(access_token: string) {
+    const user = await this.Users.findOne({ userLocalToken: access_token });
+
+    if (user && user.id) {
+      return user.searchHistory;
+    } else {
+      throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
+    }
+  }
+
   async addFavoriteTracks(trackId: string, access_token: string) {
     const user = await this.Users.findOne({ userLocalToken: access_token });
     if (user.id) {

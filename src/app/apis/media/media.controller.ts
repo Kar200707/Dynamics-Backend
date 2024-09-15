@@ -16,6 +16,16 @@ export class MediaController {
     return await this.mediaService.setPlayHistory(body.trackId, body.access_token);
   }
 
+  @Post('set-search-history')
+  async setSearchHistory(@Body() body: { access_token: string, text: string }) {
+    return await this.mediaService.setSearchHistory(body.text, body.access_token);
+  }
+
+  @Post('get-search-history')
+  async getSearchHistory(@Body() body: { access_token: string }) {
+    return await this.mediaService.getSearchHistory(body.access_token);
+  }
+
   @Post('get-play-history')
   async getPlayHistory(@Body() body: { access_token: string }) {
     return await this.mediaService.getHistoryTracks(body.access_token);

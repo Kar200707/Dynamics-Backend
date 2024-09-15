@@ -40,6 +40,14 @@ export class User {
   ];
 
   @Prop()
+  searchHistory: [
+    {
+      text: string,
+      addedAt: number
+    }
+  ];
+
+  @Prop()
   artistFavorites: string[];
 
   @Prop()
