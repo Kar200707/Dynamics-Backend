@@ -2,26 +2,53 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { YtdlCore } from '@ybd-project/ytdl-core';
 import { Request, Response } from 'express';
 import ytSearch from 'yt-search';
+import { Client } from 'youtubei';
+import ytch from 'yt-channel-info';
 
 @Injectable()
 export class YoutubeDataService {
   private logger: Logger = new Logger(YoutubeDataService.name);
   private ytdl: YtdlCore;
+  private youtubeInfo: Client = new Client();
 
   constructor() {
     this.ytdl = new YtdlCore();
   }
 
-  async getVideoDetailsById(id: string) {
+  async getChannelInfo(channelId: string): Promise<any> {
+    try {
+      const videos = await ytch.getChannelVideos({
+        channelId
+      });
+      const channelInfo = await this.youtubeInfo.getChannel(channelId);
+
+      const info = {
+        title: channelInfo.name,
+        image: channelInfo.thumbnails[channelInfo.thumbnails.length - 1].url,
+        videos: videos.items
+      }
+      return info;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException('id invalid', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getAuthorIdByVideoId(id: string) {
     const url: string = `https://www.youtube.com/watch?v=${id}`;
     const details = await this.ytdl.getBasicInfo(url);
-    return details;
+    return { authorId: details.videoDetails.author.id };
+  }
+
+  async getVideoDetailsById(id: string) {
+    const url: string = `https://www.youtube.com/watch?v=${id}`;
+    return await this.ytdl.getBasicInfo(url);
   }
 
   async getVideoSearchList(query: string): Promise<any> {
     try {
       const results = await ytSearch(query);
-      return results.videos.slice(0, 5);
+      return results.videos.slice(0, 10);
     } catch (error) {
       this.logger.error('Error searching YouTube:', error.message);
       throw new HttpException('Error searching YouTube', HttpStatus.INTERNAL_SERVER_ERROR);

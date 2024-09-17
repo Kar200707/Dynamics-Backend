@@ -12,9 +12,19 @@ export class YoutubeBaseController {
     return await this.youtubeBase.getVideoSearchList(body.searchText);
   }
 
+  @Post('get-channel-info/:channelId')
+  async getChannelInfo(@Param('channelId') query: string) {
+    return await this.youtubeBase.getChannelInfo(query);
+  }
+
   @Post('get-details/:id')
   async getDetails(@Param('id') trackId: string) {
     return this.youtubeBase.getVideoDetailsById(trackId);
+  }
+
+  @Post('get-author-id-by-video-id/:id')
+  async getAuthorIdByVideoId(@Param('id') trackId: string) {
+    return this.youtubeBase.getAuthorIdByVideoId(trackId);
   }
 
   @Get('get-stream/:id')

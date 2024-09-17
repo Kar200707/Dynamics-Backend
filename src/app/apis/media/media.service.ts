@@ -60,7 +60,8 @@ export class MediaService {
         const trackData = {
           title: trackDetails.videoDetails.title,
           author: {
-            name: trackDetails.videoDetails.author.name
+            name: trackDetails.videoDetails.author.name,
+            id: trackDetails.videoDetails.author.id
           },
           image: trackDetails.videoDetails.media.thumbnails[0].url,
           videoId: trackDetails.videoDetails.videoId,
