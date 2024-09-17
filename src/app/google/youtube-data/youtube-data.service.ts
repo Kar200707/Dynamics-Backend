@@ -42,6 +42,7 @@ export class YoutubeDataService {
 
   async getVideoDetailsById(id: string) {
     const url: string = `https://www.youtube.com/watch?v=${id}`;
+    console.log(id);
     return await this.ytdl.getBasicInfo(url);
   }
 
@@ -59,13 +60,18 @@ export class YoutubeDataService {
     const url: string = `https://www.youtube.com/watch?v=${videoId}`;
 
     try {
-
-
       res.setHeader('Content-Type', 'audio/webm');
+      res.setHeader('Connection', 'keep-alive');
 
       const videoStream = this.ytdl.download(url, {
         filter: 'audioonly',
         quality: 'highestaudio',
+        requestOptions: {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9',
+          }
+        }
       });
 
       const range = req.headers.range;
@@ -82,18 +88,27 @@ export class YoutubeDataService {
           res.setHeader('Content-Length', chunkSize);
           res.status(HttpStatus.PARTIAL_CONTENT);
 
-          videoStream.pipe(res, { end: false });
+          videoStream.on('data', (chunk) => {
+            res.write(chunk);
+          });
+
           videoStream.on('end', () => {
             res.end();
           });
-        });
 
-        videoStream.on('error', (error) => {
-          this.logger.error('Error streaming audio:', error.message);
-          res.status(500).send('Error streaming YouTube audio');
+          videoStream.on('error', (error) => {
+            this.logger.error('Error streaming audio:', error.message);
+            res.status(500).send('Error streaming YouTube audio');
+          });
         });
       } else {
-        videoStream.pipe(res);
+        videoStream.on('data', (chunk) => {
+          res.write(chunk);
+        });
+
+        videoStream.on('end', () => {
+          res.end();
+        });
 
         videoStream.on('error', (error) => {
           this.logger.error('Error streaming audio:', error.message);
