@@ -48,7 +48,7 @@ export class YoutubeDataService {
   async getVideoSearchList(query: string): Promise<any> {
     try {
       const results = await ytSearch(query);
-      return results.videos.slice(0, 10);
+      return results.videos.slice(0, 7);
     } catch (error) {
       this.logger.error('Error searching YouTube:', error.message);
       throw new HttpException('Error searching YouTube', HttpStatus.INTERNAL_SERVER_ERROR);
