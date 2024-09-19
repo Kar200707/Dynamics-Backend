@@ -3,8 +3,7 @@ import { DriveService } from '../../google/drive/drive.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../../auth/schemas/user.schema';
 import { Model } from 'mongoose';
-import { Track, TrackDocument } from './schemas/track-details.schema';
-import { YoutubeBaseService } from '../youtube_base/youtube_base.service';
+import { Track, TrackDocument } from './schemas/track-details.schema';``
 import { YoutubeDataService } from '../../google/youtube-data/youtube-data.service';
 import { YTDL_VideoInfo } from '@ybd-project/ytdl-core/package/types/Ytdl';
 
@@ -66,7 +65,10 @@ export class MediaService {
           image: trackDetails.videoDetails.media.thumbnails[0].url,
           videoId: trackDetails.videoDetails.videoId,
           track_duration: trackDetails.videoDetails.lengthSeconds,
-          addedAt: track.addedAt
+          addedAt: track.addedAt,
+          view: trackDetails.videoDetails.viewCount,
+          likes: trackDetails.videoDetails.likes,
+          description: trackDetails.videoDetails.description,
         };
         favoriteTrackList.push(trackData);
       }));
@@ -88,12 +90,16 @@ export class MediaService {
         const trackData = {
           title: trackDetails.videoDetails.title,
           author: {
-            name: trackDetails.videoDetails.author.name
+            name: trackDetails.videoDetails.author.name,
+            id: trackDetails.videoDetails.author.id
           },
           image: trackDetails.videoDetails.media.thumbnails[0].url,
           videoId: trackDetails.videoDetails.videoId,
           track_duration: trackDetails.videoDetails.lengthSeconds,
-          addedAt: track.addedAt
+          addedAt: track.addedAt,
+          view: trackDetails.videoDetails.viewCount,
+          likes: trackDetails.videoDetails.likes,
+          description: trackDetails.videoDetails.description,
         };
         historyTrackList.push(trackData);
       }));

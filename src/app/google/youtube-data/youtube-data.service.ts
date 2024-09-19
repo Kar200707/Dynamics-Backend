@@ -42,8 +42,7 @@ export class YoutubeDataService {
 
   async getVideoDetailsById(id: string) {
     const url: string = `https://www.youtube.com/watch?v=${id}`;
-    console.log(id);
-    return await this.ytdl.getBasicInfo(url);
+    return await this.ytdl.getBasicInfo(url)
   }
 
   async getVideoSearchList(query: string): Promise<any> {
