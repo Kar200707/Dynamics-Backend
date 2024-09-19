@@ -66,7 +66,7 @@ export class MediaService {
           videoId: trackDetails.videoDetails.videoId,
           track_duration: trackDetails.videoDetails.lengthSeconds,
           addedAt: track.addedAt,
-          view: trackDetails.videoDetails.viewCount,
+          views: trackDetails.videoDetails.viewCount,
           likes: trackDetails.videoDetails.likes,
           description: trackDetails.videoDetails.description,
         };
@@ -97,7 +97,7 @@ export class MediaService {
           videoId: trackDetails.videoDetails.videoId,
           track_duration: trackDetails.videoDetails.lengthSeconds,
           addedAt: track.addedAt,
-          view: trackDetails.videoDetails.viewCount,
+          views: trackDetails.videoDetails.viewCount,
           likes: trackDetails.videoDetails.likes,
           description: trackDetails.videoDetails.description,
         };
