@@ -79,7 +79,7 @@ export class YoutubeDataService {
 
       const videoStream = this.ytdl.download(url, {
         filter: type === 'audio' ? 'audioonly' : 'videoandaudio',
-        quality: type === 'audio' ? 'highestaudio' : 'highest',
+        quality: 'highestaudio',
       });
 
       const range = req.headers.range;
