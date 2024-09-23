@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Query, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { YoutubeDataService } from '../../google/youtube-data/youtube-data.service';
 
@@ -28,12 +28,13 @@ export class YoutubeBaseController {
   }
 
   @Get('get-stream/:id')
-  async getStream(@Param('id') trackId: string, @Res() res: Response, @Req() req: Request) {
-    try {
-      return await this.youtubeBase.streamAudio(trackId, req, res);
-    } catch (error) {
-      console.log(error);
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ error: 'Failed to stream audio' });
-    }
+  async getStream(
+    @Param('id') trackId: string,
+    @Res() res: Response,
+    @Req() req: Request,
+    @Query('type') type: string,
+    @Query('quality') quality: string
+  ) {
+    return await this.youtubeBase.streamAudio(trackId, req, res, type, quality);
   }
 }

@@ -4,6 +4,7 @@ import { Request, Response } from 'express';
 import ytSearch from 'yt-search';
 import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
+import { PassThrough } from 'stream';
 
 @Injectable()
 export class YoutubeDataService {
@@ -55,23 +56,37 @@ export class YoutubeDataService {
     }
   }
 
-  async streamAudio(videoId: string, req: Request, res: Response) {
+  async streamAudio(videoId: string, req: Request, res: Response, type: string, quality: string) {
+    if (type !== 'video' && type !== 'audio') {
+      throw new HttpException('type not valid', HttpStatus.BAD_REQUEST);
+    }
+    if (
+      quality !== 'lowest' &&
+      quality !== 'highest' &&
+      quality !== 'highestaudio' &&
+      quality !== 'lowestaudio' &&
+      quality !== 'highestvideo' &&
+      quality !== 'lowestvideo'
+    ) {
+      throw new HttpException('quality not valid', HttpStatus.BAD_REQUEST);
+    }
+
     const url: string = `https://www.youtube.com/watch?v=${videoId}`;
 
     try {
-      res.setHeader('Content-Type', 'audio/webm');
+      res.setHeader('Content-Type', type === 'audio' ? 'audio/webm' : 'video/mp4');
       res.setHeader('Connection', 'keep-alive');
 
       const videoStream = this.ytdl.download(url, {
-        filter: 'audioonly',
-        quality: 'highestaudio'
-      })
+        filter: type === 'audio' ? 'audioonly' : 'videoandaudio',
+        quality: type === 'audio' ? 'highestaudio' : 'highest',
+      });
 
       const range = req.headers.range;
       if (range) {
         const [start, end] = range.replace(/bytes=/, "").split("-");
         const startByte = parseInt(start, 10);
-        const endByte = end ? parseInt(end, 10) : undefined;
+        let endByte = end ? parseInt(end, 10) : undefined;
 
         videoStream.on('response', (response) => {
           const totalBytes = parseInt(response.headers['content-length'], 10);
@@ -96,8 +111,8 @@ export class YoutubeDataService {
         });
       }
     } catch (error) {
-      this.logger.error(`Failed to stream audio: ${error.message}`);
-      throw new HttpException(`Failed to stream audio: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
+      this.logger.error(`Failed to stream ${type}: ${error.message}`);
+      throw new HttpException(`Failed to stream ${type}: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
