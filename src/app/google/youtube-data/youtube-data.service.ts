@@ -13,13 +13,17 @@ export class YoutubeDataService {
   private youtubeInfo: Client = new Client();
 
   constructor() {
-    this.ytdl = new YtdlCore();
+    this.ytdl = new YtdlCore({
+      disableDefaultClients: true,
+      clients: ["web", "android"],
+      lang: "am",
+    });
   }
 
   async getChannelInfo(channelId: string): Promise<any> {
     try {
       const videos = await ytch.getChannelVideos({
-        channelId
+        channelId,
       });
       const channelInfo = await this.youtubeInfo.getChannel(channelId);
 
@@ -57,21 +61,24 @@ export class YoutubeDataService {
   }
 
   async streamAudio(videoId: string, req: Request, res: Response, type: string, quality: string) {
-    if (type !== 'video' && type !== 'audio') {
-      throw new HttpException('type not valid', HttpStatus.BAD_REQUEST);
+    const validTypes = ['video', 'audio'];
+    const validQualities = [
+      'lowest',
+      'highest',
+      'highestaudio',
+      'lowestaudio',
+      'highestvideo',
+      'lowestvideo',
+    ];
+
+    if (!validTypes.includes(type)) {
+      throw new HttpException('Invalid type', HttpStatus.BAD_REQUEST);
     }
-    if (
-      quality !== 'lowest' &&
-      quality !== 'highest' &&
-      quality !== 'highestaudio' &&
-      quality !== 'lowestaudio' &&
-      quality !== 'highestvideo' &&
-      quality !== 'lowestvideo'
-    ) {
-      throw new HttpException('quality not valid', HttpStatus.BAD_REQUEST);
+    if (!validQualities.includes(quality)) {
+      throw new HttpException('Invalid quality', HttpStatus.BAD_REQUEST);
     }
 
-    const url: string = `https://www.youtube.com/watch?v=${videoId}`;
+    const url = `https://www.youtube.com/watch?v=${videoId}`;
 
     try {
       res.setHeader('Content-Type', type === 'audio' ? 'audio/webm' : 'video/mp4');
@@ -100,14 +107,14 @@ export class YoutubeDataService {
 
           videoStream.on('error', (error) => {
             this.logger.error('Error streaming audio:', error.message);
-            res.status(500).send('Error streaming YouTube audio');
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming YouTube audio');
           });
         });
       } else {
         videoStream.pipe(res);
         videoStream.on('error', (error) => {
           this.logger.error('Error streaming audio:', error.message);
-          res.status(500).send('Error streaming YouTube audio');
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming YouTube audio');
         });
       }
     } catch (error) {
