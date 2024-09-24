@@ -14,8 +14,7 @@ export class YoutubeDataService {
   constructor() {
     this.ytdl = new YtdlCore({
       disableDefaultClients: true,
-      clients: [ "android", "web" ],
-      lang: "am",
+      clients: [ "android", "web" ]
     });
   }
 
