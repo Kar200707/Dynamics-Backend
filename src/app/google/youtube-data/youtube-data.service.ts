@@ -4,7 +4,6 @@ import { Request, Response } from 'express';
 import ytSearch from 'yt-search';
 import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
-import { PassThrough } from 'stream';
 
 @Injectable()
 export class YoutubeDataService {
@@ -15,7 +14,7 @@ export class YoutubeDataService {
   constructor() {
     this.ytdl = new YtdlCore({
       disableDefaultClients: true,
-      clients: [ "android" ],
+      clients: [ "android", "web" ],
       lang: "am",
     });
   }
