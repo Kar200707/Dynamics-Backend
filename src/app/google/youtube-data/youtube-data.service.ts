@@ -12,7 +12,10 @@ export class YoutubeDataService {
   private youtubeInfo: Client = new Client();
 
   constructor() {
-    this.ytdl = new YtdlCore();
+    this.ytdl = new YtdlCore({
+      disableDefaultClients: true,
+      clients: ["web", "android", "ios"]
+    });
   }
 
   async getChannelInfo(channelId: string): Promise<any> {
