@@ -12,10 +12,7 @@ export class YoutubeDataService {
   private youtubeInfo: Client = new Client();
 
   constructor() {
-    this.ytdl = new YtdlCore({
-      disableDefaultClients: true,
-      clients: [ "android", "web" ]
-    });
+    this.ytdl = new YtdlCore();
   }
 
   async getChannelInfo(channelId: string): Promise<any> {
@@ -59,7 +56,6 @@ export class YoutubeDataService {
   }
 
   async streamAudio(videoId: string, req: Request, res: Response, type: string, quality: string) {
-    console.log('edsakaren pron em ------------------------------');
     const validTypes = ['video', 'audio'];
     const validQualities = [
       'lowest',
