@@ -12,16 +12,13 @@ export class YoutubeDataService {
   private youtubeInfo: Client = new Client();
 
   constructor() {
-    this.ytdl = new YtdlCore({
-      disableDefaultClients: true,
-      clients: ["web", "android", "ios"]
-    });
+    this.ytdl = new YtdlCore();
   }
 
   async getChannelInfo(channelId: string): Promise<any> {
     try {
-      const videos = await ytch.getChannelVideos({
-        channelId,
+      const videos = ytch.getChannelVideos({
+        channelId
       });
       const channelInfo = await this.youtubeInfo.getChannel(channelId);
 
@@ -51,6 +48,7 @@ export class YoutubeDataService {
   async getVideoSearchList(query: string): Promise<any> {
     try {
       const results = await ytSearch(query);
+      console.log(results.playlists);
       return results.videos.slice(0, 10);
     } catch (error) {
       this.logger.error('Error searching YouTube:', error.message);
@@ -82,16 +80,22 @@ export class YoutubeDataService {
       res.setHeader('Content-Type', type === 'audio' ? 'audio/webm' : 'video/mp4');
       res.setHeader('Connection', 'keep-alive');
 
-      const videoStream = this.ytdl.download(url, {
-        filter: type === 'audio' ? 'audioonly' : 'videoandaudio',
-        quality: 'highestaudio',
-      });
-
       const range = req.headers.range;
       if (range) {
         const [start, end] = range.replace(/bytes=/, "").split("-");
         const startByte = parseInt(start, 10);
         let endByte = end ? parseInt(end, 10) : undefined;
+
+        // Set streamType explicitly to 'nodejs' to get a pipable stream.
+        const videoStream: any = await this.ytdl.download(url, {
+          filter: type === 'audio' ? 'audioonly' : 'videoandaudio',
+          quality,
+          streamType: 'nodejs',
+          range: {
+            start: startByte,
+            end: endByte
+          }
+        });
 
         videoStream.on('response', (response) => {
           const totalBytes = parseInt(response.headers['content-length'], 10);
@@ -102,14 +106,21 @@ export class YoutubeDataService {
           res.status(HttpStatus.PARTIAL_CONTENT);
 
           videoStream.pipe(res);
+        });
 
-          videoStream.on('error', (error) => {
-            this.logger.error('Error streaming audio:', error.message);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming YouTube audio');
-          });
+        videoStream.on('error', (error) => {
+          this.logger.error('Error streaming audio:', error.message);
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming YouTube audio');
         });
       } else {
+        const videoStream: any = await this.ytdl.download(url, {
+          filter: type === 'audio' ? 'audioonly' : 'videoandaudio',
+          quality,
+          streamType: 'nodejs',
+        });
+
         videoStream.pipe(res);
+
         videoStream.on('error', (error) => {
           this.logger.error('Error streaming audio:', error.message);
           res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming YouTube audio');

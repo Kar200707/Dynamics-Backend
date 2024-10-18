@@ -7,6 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
+    "git": "git add . && git commit -m 'quick push' && git push",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/main",
     "start:dev": "nest start --watch",
@@ -33,7 +34,7 @@
     "@types/musicmetadata": "^2.0.9",
     "@types/punycode": "^2.1.4",
     "@types/validator": "^13.12.0",
-    "@ybd-project/ytdl-core": "^5.1.9-2",
+    "@ybd-project/ytdl-core": "^6.0.4",
     "axios": "^1.7.2",
     "bcrypt": "^5.1.1",
     "get-audio-duration": "^4.0.1",
