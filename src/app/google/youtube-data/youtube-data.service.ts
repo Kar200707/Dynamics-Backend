@@ -12,7 +12,10 @@ export class YoutubeDataService {
   private youtubeInfo: Client = new Client();
 
   constructor() {
-    this.ytdl = new YtdlCore();
+    this.ytdl = new YtdlCore({
+      disableDefaultClients: true,
+      clients: ["web", "android", "ios"],
+    });
   }
 
   async getChannelInfo(channelId: string): Promise<any> {
@@ -80,52 +83,97 @@ export class YoutubeDataService {
       res.setHeader('Content-Type', type === 'audio' ? 'audio/webm' : 'video/mp4');
       res.setHeader('Connection', 'keep-alive');
 
-      const range = req.headers.range;
-      if (range) {
-        const [start, end] = range.replace(/bytes=/, "").split("-");
-        const startByte = parseInt(start, 10);
-        let endByte = end ? parseInt(end, 10) : undefined;
+      const info = await this.ytdl.getBasicInfo(url);
 
-        // Set streamType explicitly to 'nodejs' to get a pipable stream.
-        const videoStream: any = await this.ytdl.download(url, {
-          filter: type === 'audio' ? 'audioonly' : 'videoandaudio',
-          quality,
-          streamType: 'nodejs',
-          range: {
-            start: startByte,
-            end: endByte
+      this.ytdl.download(url, {
+        filter: type === 'audio' ? 'audioonly' : 'videoandaudio',
+        quality,
+        streamType: 'nodejs'
+      }).then((stream: any) => {
+        res.setHeader('Content-Type', type === 'audio' ? 'audio/webm' : 'video/mp4');
+        res.setHeader('Connection', 'keep-alive');
+
+        const range = req.headers.range;
+
+        if (!range) {
+          stream.pipe(res);
+        } else {
+          const totalSize = info.videoDetails.lengthSeconds * (type === 'audio' ? 128 * 1024 : 1000 * 1024);
+
+          if (!totalSize || totalSize <= 0) {
+            console.error('Invalid totalSize:', totalSize);
+            res.status(500).send('Server error: invalid content size');
+            return;
           }
-        });
 
-        videoStream.on('response', (response) => {
-          const totalBytes = parseInt(response.headers['content-length'], 10);
-          const chunkSize = (endByte !== undefined ? endByte - startByte + 1 : totalBytes - startByte);
+          const [start, end] = range.replace(/bytes=/, "").split("-");
+          const startByte = parseInt(start, 10);
+          let endByte = end ? parseInt(end, 10) : totalSize - 1;
+          const chunkSize = (endByte - startByte) + 1;
 
-          res.setHeader('Content-Range', `bytes ${startByte}-${endByte || (totalBytes - 1)}/${totalBytes}`);
+          res.setHeader('Content-Range', `bytes ${startByte}-${endByte}/${totalSize}`);
           res.setHeader('Content-Length', chunkSize);
           res.status(HttpStatus.PARTIAL_CONTENT);
 
-          videoStream.pipe(res);
-        });
+          let bytesWritten = 0;
 
-        videoStream.on('error', (error) => {
-          this.logger.error('Error streaming audio:', error.message);
-          res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming YouTube audio');
-        });
-      } else {
-        const videoStream: any = await this.ytdl.download(url, {
-          filter: type === 'audio' ? 'audioonly' : 'videoandaudio',
-          quality,
-          streamType: 'nodejs',
-        });
+          stream.on('data', (chunk) => {
+            if (bytesWritten + chunk.length > chunkSize) {
+              chunk = chunk.slice(0, chunkSize - bytesWritten);
+            }
 
-        videoStream.pipe(res);
+            bytesWritten += chunk.length;
+            res.write(chunk);
 
-        videoStream.on('error', (error) => {
-          this.logger.error('Error streaming audio:', error.message);
-          res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming YouTube audio');
-        });
-      }
+            if (bytesWritten >= chunkSize) {
+              stream.destroy();
+            }
+          });
+
+          stream.on('end', () => {
+            res.end();
+          });
+
+          stream.on('error', (err: any) => {
+            console.error('Stream error:', err);
+            res.status(500).send('Error streaming data');
+          });
+        }
+      }).catch((err: any) => {
+        console.error('Error during video stream:', err);
+        res.status(500).send('Server error');
+      });
+
+
+      // const range = req.headers.range;
+      // if (range) {
+      //   const [start, end] = range.replace(/bytes=/, "").split("-");
+      //   const startByte = parseInt(start, 10);
+      //   let endByte = end ? parseInt(end, 10) : undefined;
+      //
+      //   videoStream.on('response', (response) => {
+      //     const totalBytes = parseInt(response.headers['content-length'], 10);
+      //     const chunkSize = (endByte !== undefined ? endByte - startByte + 1 : totalBytes - startByte);
+      //
+      //     res.setHeader('Content-Range', `bytes ${startByte}-${endByte || (totalBytes - 1)}/${totalBytes}`);
+      //     res.setHeader('Content-Length', chunkSize);
+      //     res.status(HttpStatus.PARTIAL_CONTENT);
+      //
+      //     videoStream.pipe(res);
+      //   });
+      //
+      //   videoStream.on('error', (error) => {
+      //     this.logger.error('Error streaming audio:', error.message);
+      //     res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming YouTube audio');
+      //   });
+      // } else {
+      //   videoStream.pipe(res);
+      //
+      //   videoStream.on('error', (error) => {
+      //     this.logger.error('Error streaming audio:', error.message);
+      //     res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming YouTube audio');
+      //   });
+      // }
     } catch (error) {
       this.logger.error(`Failed to stream ${type}: ${error.message}`);
       throw new HttpException(`Failed to stream ${type}: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
