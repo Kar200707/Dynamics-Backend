@@ -55,22 +55,24 @@ export class MediaService {
       const favoriteTrackList = [];
 
       await Promise.all(user.trackFavorites.map(async (track) => {
-        const trackDetails: YTDL_VideoInfo = await this.youtubeDataService.getVideoDetailsById(track.trackId);
-        const trackData = {
-          title: trackDetails.videoDetails.title,
-          author: {
-            name: trackDetails.videoDetails.author.name,
-            id: trackDetails.videoDetails.author.id
-          },
-          image: trackDetails.videoDetails.media.thumbnails[0].url,
-          videoId: trackDetails.videoDetails.videoId,
-          track_duration: trackDetails.videoDetails.lengthSeconds,
-          addedAt: track.addedAt,
-          views: trackDetails.videoDetails.viewCount,
-          likes: trackDetails.videoDetails.likes,
-          description: trackDetails.videoDetails.description,
-        };
-        favoriteTrackList.push(trackData);
+
+        return this.youtubeDataService.getVideoDetailsById(track.trackId).then(trackDetails => {
+          const trackData = {
+            title: trackDetails.videoDetails.title,
+            author: {
+              name: trackDetails.videoDetails.author.name,
+              id: trackDetails.videoDetails.author.id
+            },
+            image: trackDetails.videoDetails.media.thumbnails[0].url,
+            videoId: trackDetails.videoDetails.videoId,
+            track_duration: trackDetails.videoDetails.lengthSeconds,
+            addedAt: track.addedAt,
+            views: trackDetails.videoDetails.viewCount,
+            likes: trackDetails.videoDetails.likes,
+            description: trackDetails.videoDetails.description,
+          };
+          favoriteTrackList.push(trackData);
+        })
       }));
 
       return favoriteTrackList;
@@ -85,23 +87,24 @@ export class MediaService {
     if (user && user.id) {
       const historyTrackList = [];
 
-      await Promise.all(user.playHistory.map(async (track) => {
-        const trackDetails: YTDL_VideoInfo = await this.youtubeDataService.getVideoDetailsById(track.trackId);
-        const trackData = {
-          title: trackDetails.videoDetails.title,
-          author: {
-            name: trackDetails.videoDetails.author.name,
-            id: trackDetails.videoDetails.author.id
-          },
-          image: trackDetails.videoDetails.media.thumbnails[0].url,
-          videoId: trackDetails.videoDetails.videoId,
-          track_duration: trackDetails.videoDetails.lengthSeconds,
-          addedAt: track.addedAt,
-          views: trackDetails.videoDetails.viewCount,
-          likes: trackDetails.videoDetails.likes,
-          description: trackDetails.videoDetails.description,
-        };
-        historyTrackList.push(trackData);
+      await Promise.all(user.playHistory.map((track) => {
+        return this.youtubeDataService.getVideoDetailsById(track.trackId).then(trackDetails => {
+          const trackData = {
+            title: trackDetails.videoDetails.title,
+            author: {
+              name: trackDetails.videoDetails.author.name,
+              id: trackDetails.videoDetails.author.id
+            },
+            image: trackDetails.videoDetails.media.thumbnails[0].url,
+            videoId: trackDetails.videoDetails.videoId,
+            track_duration: trackDetails.videoDetails.lengthSeconds,
+            addedAt: track.addedAt,
+            views: trackDetails.videoDetails.viewCount,
+            likes: trackDetails.videoDetails.likes,
+            description: trackDetails.videoDetails.description,
+          };
+          historyTrackList.push(trackData);
+        });
       }));
 
       return historyTrackList;
