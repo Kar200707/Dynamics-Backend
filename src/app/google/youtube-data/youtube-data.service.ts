@@ -44,8 +44,20 @@ export class YoutubeDataService {
   }
 
   async getVideoDetailsById(id: string) {
-    const url: string = `https://www.youtube.com/watch?v=${id}`;
-    return await this.ytdl.getBasicInfo(url)
+    try {
+      const url: string = `https://www.youtube.com/watch?v=${id}`;
+      const info = await this.ytdl.getBasicInfo(url);
+
+      if (!info || !info.videoDetails) {
+        console.warn(`Видео с ID ${id} недоступно или данные некорректны.`);
+        return null;
+      }
+
+      return info.videoDetails;
+    } catch (error) {
+      console.error(`Ошибка при получении данных для видео с ID ${id}:`, error.message);
+      return null;  // Возвращаем null, если произошла ошибка
+    }
   }
 
   async getVideoSearchList(query: string): Promise<any> {
