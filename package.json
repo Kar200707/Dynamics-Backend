@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@distube/ytdl-core": "^4.14.4",
     "@google-cloud/storage": "^7.11.2",
     "@googleapis/drive": "^8.10.0",
     "@lunuy/yt-mp3": "^1.2.0",
@@ -47,7 +48,8 @@
     "validator": "^13.12.0",
     "youtubei": "^1.5.4",
     "yt-channel-info": "^3.2.1",
-    "yt-search": "^2.12.1"
+    "yt-search": "^2.12.1",
+    "yt-stream": "^1.7.4"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
