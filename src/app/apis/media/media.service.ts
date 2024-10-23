@@ -63,12 +63,12 @@ export class MediaService {
                 name: trackDetails.author.name,
                 id: trackDetails.author.id
               },
-              image: trackDetails.media.thumbnails[0].url,
+              image: trackDetails.thumbnails.slice(-1)[0].url,
               videoId: trackDetails.videoId,
               track_duration: trackDetails.lengthSeconds,
               addedAt: track.addedAt,
               views: trackDetails.viewCount,
-              likes: trackDetails.likes,
+              likes: 0,
               description: trackDetails.description,
             };
             favoriteTrackList.push(trackData);
@@ -98,12 +98,12 @@ export class MediaService {
               name: trackDetails.author.name,
               id: trackDetails.author.id
             },
-            image: trackDetails.media.thumbnails[0].url,
+            image: trackDetails.thumbnails.slice(-1)[0].url,
             videoId: trackDetails.videoId,
             track_duration: trackDetails.lengthSeconds,
             addedAt: track.addedAt,
             views: trackDetails.viewCount,
-            likes: trackDetails.likes,
+            likes: 0,
             description: trackDetails.description,
           };
           historyTrackList.push(trackData);

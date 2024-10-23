@@ -4,7 +4,6 @@ import { Request, Response } from 'express';
 import ytSearch from 'yt-search';
 import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
-import * as ytstream from 'yt-stream';
 
 @Injectable()
 export class YoutubeDataService {
@@ -47,13 +46,13 @@ export class YoutubeDataService {
       const info = await this.ytdl.getBasicInfo(url);
 
       if (!info || !info.videoDetails) {
-        console.warn(`Видео с ID ${id} недоступно или данные некорректны.`);
+        console.warn(`Video with ID ${id} is unavailable or data is incorrect.`);
         return null;
       }
 
       return info.videoDetails;
     } catch (error) {
-      console.error(`Ошибка при получении данных для видео с ID ${id}:`, error.message);
+      console.error(`Error retrieving data for video with ID ${id}:`, error.message);
       return null;
     }
   }
@@ -70,14 +69,7 @@ export class YoutubeDataService {
 
   async streamAudio(videoId: string, req: Request, res: Response, type: string, quality: string) {
     const validTypes = ['video', 'audio'];
-    const validQualities = [
-      'lowest',
-      'highest',
-      'highestaudio',
-      'lowestaudio',
-      'highestvideo',
-      'lowestvideo',
-    ];
+    const validQualities = ['lowest', 'highest', 'highestaudio', 'lowestaudio', 'highestvideo', 'lowestvideo'];
 
     if (!validTypes.includes(type)) {
       throw new HttpException('Invalid type', HttpStatus.BAD_REQUEST);
@@ -91,46 +83,69 @@ export class YoutubeDataService {
     try {
       res.setHeader('Content-Type', type === 'audio' ? 'audio/webm' : 'video/mp4');
       res.setHeader('Connection', 'keep-alive');
+      res.setHeader('Accept-Ranges', 'bytes');
 
-      const response :ytstream.Stream = await ytstream.stream(url, {
-        quality: 'high',
-        type: 'audio',
-        highWaterMark: 1024 * 1024 * 32,
-        download: true,
-      })
+      const info = await this.ytdl.getBasicInfo(url);
 
-      res.setHeader('Content-Type', type === 'audio' ? 'audio/webm' : 'video/mp4');
-      res.setHeader('Connection', 'keep-alive');
-      const range = req.headers.range;
-      const totalSize = parseInt(response.content_length, 10) || parseInt(response.format.contentLength, 10);
-      if (!range) {
-        response.stream.pipe(res);
-      } else {
-        const [start, end] = range.replace(/bytes=/, "").split("-");
-        const startByte = parseInt(start, 10);
-        let endByte = end ? parseInt(end, 10) : totalSize - 1;
-        const chunkSize = (endByte - startByte) + 1;
-        res.setHeader('Content-Range', `bytes ${startByte}-${endByte}/${totalSize}`);
-        res.setHeader('Content-Length', chunkSize);
-        res.status(HttpStatus.PARTIAL_CONTENT);
-        let bytesWritten = 0;
-        response.stream.on('data', (chunk) => {
-          if (bytesWritten + chunk.length > chunkSize) {
-            chunk = chunk.slice(0, chunkSize - bytesWritten);
+      this.ytdl.download(url, {
+        filter: type === 'audio' ? 'audioonly' : 'videoandaudio',
+        quality,
+        dlChunkSize: 524288,
+        streamType: 'nodejs'
+      }).then((stream: any) => {
+        res.setHeader('Content-Type', type === 'audio' ? 'audio/webm' : 'video/mp4');
+        res.setHeader('Connection', 'keep-alive');
+
+        const range = req.headers.range;
+
+        if (!range) {
+          stream.pipe(res);
+        } else {
+          const totalSize = info.videoDetails.lengthSeconds * (type === 'audio' ? 128 * 1024 : 1000 * 1024);
+
+          if (!totalSize || totalSize <= 0) {
+            console.error('Invalid totalSize:', totalSize);
+            res.status(500).send('Server error: invalid content size');
+            return;
           }
-          bytesWritten += chunk.length;
-          res.write(chunk);
-          if (bytesWritten >= chunkSize) {
-            response.stream.destroy();
+
+          const [start, end] = range.replace(/bytes=/, "").split("-");
+          const startByte = parseInt(start, 10);
+          let endByte = end ? parseInt(end, 10) : totalSize - 1;
+          const chunkSize = (endByte - startByte) + 1;
+
+          res.setHeader('Content-Range', `bytes ${startByte}-${endByte}/${totalSize}`);
+          res.setHeader('Content-Length', chunkSize);
+          res.status(HttpStatus.PARTIAL_CONTENT);
+
+          let bytesWritten = 0;
+
+          stream.on('data', (chunk) => {
+            if (bytesWritten + chunk.length > chunkSize) {
+              chunk = chunk.slice(0, chunkSize - bytesWritten);
+            }
+
+            bytesWritten += chunk.length;
+            res.write(chunk);
+
+            if (bytesWritten >= chunkSize) {
+              stream.destroy();
+            }
+          });
+
+          stream.on('end', () => {
             res.end();
-          }
-        });
+          });
 
-        response.stream.on('error', (err: any) => {
-          console.error('Stream error:', err);
-          res.status(500).send('Error streaming data');
-        });
-      }
+          stream.on('error', (err: any) => {
+            console.error('Stream error:', err);
+            res.status(500).send('Error streaming data');
+          });
+        }
+      }).catch((err: any) => {
+        console.error('Error during video stream:', err);
+        res.status(500).send('Server error');
+      });
     } catch (error) {
       this.logger.error(`Failed to stream ${type}: ${error.message}`);
       throw new HttpException(`Failed to stream ${type}: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);

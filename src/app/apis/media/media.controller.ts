@@ -1,33 +1,10 @@
-import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Param, Post } from '@nestjs/common';
 import { MediaService } from './media.service';
-import * as ytstream from 'yt-stream';
 
 @Controller('media')
 export class MediaController {
 
   constructor(private mediaService: MediaService) {  }
-
-  @Get('ytstream/:id')
-  async getTest(@Res() res, @Param('id') id: string) {
-    try {
-      const url = `https://www.youtube.com/watch?v=${id}`;
-      res.setHeader('Content-Type', 'audio/webm');
-      res.setHeader('Connection', 'keep-alive');
-
-      const stream = await ytstream.stream(url, {
-        quality: 'high',
-        type: 'audio',
-        highWaterMark: 1024 * 1024 * 32,
-        download: true,
-      });
-
-      stream.stream.pipe(res);
-
-      console.log(`Downloaded from URL: ${stream.video_url}`);
-    } catch (error) {
-      console.error('Error downloading video:', error);
-    }
-  }
 
   @Post('track-details/add-favorites')
   async addFavoritesTrack(@Body() body: { access_token: string, trackId: string }) {
