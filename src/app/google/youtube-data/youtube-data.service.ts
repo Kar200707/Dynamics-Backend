@@ -46,11 +46,12 @@ export class YoutubeDataService {
     const fetchVideoInfo = async () => {
       try {
         const url: string = `https://www.youtube.com/watch?v=${id}`;
-        const info = await Promise.race([this.ytdl.getBasicInfo(url) as Promise<any>, timeout(5000)]);
+        let info = await this.ytdl.getBasicInfo(url);
 
         if (!info || !info.videoDetails) {
+          info = await this.ytdl.getBasicInfo(url);
           console.warn(`Video with ID ${id} is unavailable or data is incorrect.`);
-          return null;
+          return info.videoDetails;
         }
 
         return info.videoDetails;
