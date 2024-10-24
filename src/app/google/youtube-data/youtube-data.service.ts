@@ -103,7 +103,6 @@ export class YoutubeDataService {
       this.ytdl.download(url, {
         filter: type === 'audio' ? 'audioonly' : 'videoandaudio',
         quality,
-        dlChunkSize: 524288,
         streamType: 'nodejs'
       }).then((stream: any) => {
         res.setHeader('Content-Type', type === 'audio' ? 'audio/webm' : 'video/mp4');
