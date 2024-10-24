@@ -5,7 +5,6 @@ import { User, UserDocument } from '../../auth/schemas/user.schema';
 import { Model } from 'mongoose';
 import { Track, TrackDocument } from './schemas/track-details.schema';``
 import { YoutubeDataService } from '../../google/youtube-data/youtube-data.service';
-import { YTDL_VideoInfo } from '@ybd-project/ytdl-core/package/types/Ytdl';
 
 @Injectable()
 export class MediaService {
