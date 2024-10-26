@@ -12,7 +12,10 @@ export class YoutubeDataService {
   private youtubeInfo: Client = new Client();
 
   constructor() {
-    this.ytdl = new YtdlCore();
+    this.ytdl = new YtdlCore({
+      hl: "am",
+      clients: ["webCreator", "webEmbedded", "mweb"]
+    });
   }
 
   async getChannelInfo(channelId: string): Promise<any> {
@@ -98,13 +101,11 @@ export class YoutubeDataService {
       res.setHeader('Connection', 'keep-alive');
       res.setHeader('Accept-Ranges', 'bytes');
 
-      const info = await this.ytdl.getBasicInfo(url);
-
       this.ytdl.download(url, {
         filter: type === 'audio' ? 'audioonly' : 'videoandaudio',
         quality,
         streamType: 'nodejs'
-      }).then((stream: any) => {
+      }).then(async (stream: any) => {
         res.setHeader('Content-Type', type === 'audio' ? 'audio/webm' : 'video/mp4');
         res.setHeader('Connection', 'keep-alive');
 
@@ -113,6 +114,7 @@ export class YoutubeDataService {
         if (!range) {
           stream.pipe(res);
         } else {
+          let info = await this.ytdl.getBasicInfo(url);
           const totalSize = info.videoDetails.lengthSeconds * (type === 'audio' ? 128 * 1024 : 1000 * 1024);
 
           if (!totalSize || totalSize <= 0) {
@@ -136,10 +138,8 @@ export class YoutubeDataService {
             if (bytesWritten + chunk.length > chunkSize) {
               chunk = chunk.slice(0, chunkSize - bytesWritten);
             }
-
             bytesWritten += chunk.length;
             res.write(chunk);
-
             if (bytesWritten >= chunkSize) {
               stream.destroy();
             }
