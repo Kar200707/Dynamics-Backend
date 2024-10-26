@@ -57,18 +57,18 @@ export class MediaService {
       await Promise.all(user.trackFavorites.map(async (track) => {
         const trackDetails: any = await this.youtubeDataService.getVideoDetailsById(track.trackId);
         const trackData = {
-          title: trackDetails.videoDetails.title,
+          title: trackDetails.title,
           author: {
-            name: trackDetails.videoDetails.author.name,
-            id: trackDetails.videoDetails.author.id
+            name: trackDetails.author.name,
+            id: trackDetails.author.id
           },
-          image: trackDetails.videoDetails.media.thumbnails[0].url,
-          videoId: trackDetails.videoDetails.videoId,
-          track_duration: trackDetails.videoDetails.lengthSeconds,
+          image: trackDetails.media.thumbnails[0].url,
+          videoId: trackDetails.videoId,
+          track_duration: trackDetails.lengthSeconds,
           addedAt: track.addedAt,
-          views: trackDetails.videoDetails.viewCount,
-          likes: trackDetails.videoDetails.likes,
-          description: trackDetails.videoDetails.description,
+          views: trackDetails.viewCount,
+          likes: trackDetails.likes,
+          description: trackDetails.description,
         };
         favoriteTrackList.push(trackData);
       }));
@@ -88,18 +88,18 @@ export class MediaService {
       await Promise.all(user.playHistory.map(async (track) => {
         const trackDetails: any = await this.youtubeDataService.getVideoDetailsById(track.trackId);
         const trackData = {
-          title: trackDetails.videoDetails.title,
+          title: trackDetails.title,
           author: {
-            name: trackDetails.videoDetails.author.name,
-            id: trackDetails.videoDetails.author.id
+            name: trackDetails.author.name,
+            id: trackDetails.author.id
           },
-          image: trackDetails.videoDetails.media.thumbnails[0].url,
-          videoId: trackDetails.videoDetails.videoId,
-          track_duration: trackDetails.videoDetails.lengthSeconds,
+          image: trackDetails.media.thumbnails[0].url,
+          videoId: trackDetails.videoId,
+          track_duration: trackDetails.lengthSeconds,
           addedAt: track.addedAt,
-          views: trackDetails.videoDetails.viewCount,
-          likes: trackDetails.videoDetails.likes,
-          description: trackDetails.videoDetails.description,
+          views: trackDetails.viewCount,
+          likes: trackDetails.likes,
+          description: trackDetails.description,
         };
         historyTrackList.push(trackData);
       }));
