@@ -47,72 +47,67 @@ export class MediaService {
     return { isFavorite };
   }
 
+
   async getFavoriteTracksList(access_token: string) {
     const user = await this.Users.findOne({ userLocalToken: access_token });
 
-    if (user) {
+    if (user && user.id) {
       const favoriteTrackList = [];
 
       await Promise.all(user.trackFavorites.map(async (track) => {
-        return this.youtubeDataService.getVideoDetailsById(track.trackId).then(trackDetails => {
-          if (trackDetails) {
-            const trackData = {
-              title: trackDetails.title,
-              author: {
-                name: trackDetails.author.name,
-                id: trackDetails.author.id
-              },
-              image: trackDetails.thumbnails.slice(-1)[0].url,
-              videoId: trackDetails.videoId,
-              track_duration: trackDetails.lengthSeconds,
-              addedAt: track.addedAt,
-              views: trackDetails.viewCount,
-              likes: 0,
-              description: trackDetails.description,
-            };
-            favoriteTrackList.push(trackData);
-          }
-        })
+        const trackDetails: any = await this.youtubeDataService.getVideoDetailsById(track.trackId);
+        const trackData = {
+          title: trackDetails.videoDetails.title,
+          author: {
+            name: trackDetails.videoDetails.author.name,
+            id: trackDetails.videoDetails.author.id
+          },
+          image: trackDetails.videoDetails.media.thumbnails[0].url,
+          videoId: trackDetails.videoDetails.videoId,
+          track_duration: trackDetails.videoDetails.lengthSeconds,
+          addedAt: track.addedAt,
+          views: trackDetails.videoDetails.viewCount,
+          likes: trackDetails.videoDetails.likes,
+          description: trackDetails.videoDetails.description,
+        };
+        favoriteTrackList.push(trackData);
       }));
 
       return favoriteTrackList;
+    } else {
+      throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
     }
-
-    return [];
   }
 
   async getHistoryTracks(access_token: string) {
     const user = await this.Users.findOne({ userLocalToken: access_token });
 
-    if (user) {
+    if (user && user.id) {
       const historyTrackList = [];
 
       await Promise.all(user.playHistory.map(async (track) => {
-        const trackDetails = await this.youtubeDataService.getVideoDetailsById(track.trackId);
-
-        if (trackDetails) {
-          const trackData = {
-            title: trackDetails.title,
-            author: {
-              name: trackDetails.author.name,
-              id: trackDetails.author.id
-            },
-            image: trackDetails.thumbnails.slice(-1)[0].url,
-            videoId: trackDetails.videoId,
-            track_duration: trackDetails.lengthSeconds,
-            addedAt: track.addedAt,
-            views: trackDetails.viewCount,
-            likes: 0,
-            description: trackDetails.description,
-          };
-          historyTrackList.push(trackData);
-        }
+        const trackDetails: any = await this.youtubeDataService.getVideoDetailsById(track.trackId);
+        const trackData = {
+          title: trackDetails.videoDetails.title,
+          author: {
+            name: trackDetails.videoDetails.author.name,
+            id: trackDetails.videoDetails.author.id
+          },
+          image: trackDetails.videoDetails.media.thumbnails[0].url,
+          videoId: trackDetails.videoDetails.videoId,
+          track_duration: trackDetails.videoDetails.lengthSeconds,
+          addedAt: track.addedAt,
+          views: trackDetails.videoDetails.viewCount,
+          likes: trackDetails.videoDetails.likes,
+          description: trackDetails.videoDetails.description,
+        };
+        historyTrackList.push(trackData);
       }));
 
       return historyTrackList;
+    } else {
+      throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
     }
-
-    return [];
   }
 
   async setPlayHistory(trackId: string, access_token: string) {

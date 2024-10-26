@@ -43,34 +43,10 @@ export class YoutubeDataService {
     return { authorId: details.videoDetails.author.id };
   }
 
-  async getVideoDetailsById(id: string, retryCount = 3) {
-    const timeout = (ms: number) => new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), ms));
-
-    const fetchVideoInfo = async () => {
-      try {
-        const url: string = `https://www.youtube.com/watch?v=${id}`;
-        let info = await this.ytdl.getBasicInfo(url);
-
-        if (!info || !info.videoDetails) {
-          info = await this.ytdl.getBasicInfo(url);
-          console.warn(`Video with ID ${id} is unavailable or data is incorrect.`);
-          return info.videoDetails;
-        }
-
-        return info.videoDetails;
-      } catch (error) {
-        console.error(`Error retrieving data for video with ID ${id}:`, error.message);
-
-        if (retryCount > 0) {
-          console.log(`Retrying... (${retryCount} attempts left)`);
-          return this.getVideoDetailsById(id, retryCount - 1);
-        }
-
-        return null;
-      }
-    };
-
-    return fetchVideoInfo();
+  async getVideoDetailsById(id: string) {
+    const url: string = `https://www.youtube.com/watch?v=${id}`;
+    const info = await this.ytdl.getBasicInfo(url);
+    return info.videoDetails;
   }
 
   async getVideoSearchList(query: string): Promise<any> {
