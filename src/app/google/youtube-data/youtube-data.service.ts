@@ -42,7 +42,9 @@ export class YoutubeDataService {
 
   async getVideoDetailsById(id: string) {
     const url: string = `https://www.youtube.com/watch?v=${id}`;
-    const info = await this.ytdl.getBasicInfo(url);
+    const info = await this.ytdl.getBasicInfo(url, {
+
+    });
     return info.videoDetails;
   }
 
