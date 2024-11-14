@@ -62,7 +62,7 @@ export class MediaService {
             name: trackDetails.author.name,
             id: trackDetails.author.id
           },
-          image: trackDetails.media.thumbnails[0].url,
+          image: trackDetails.thumbnails.at(-1).url,
           videoId: trackDetails.videoId,
           track_duration: trackDetails.lengthSeconds,
           addedAt: track.addedAt,
@@ -85,7 +85,7 @@ export class MediaService {
     if (user && user.id) {
       const historyTrackList = [];
 
-      await Promise.race(user.playHistory.map(async (track) => {
+      await Promise.all(user.playHistory.map(async (track) => {
         const trackDetails: any = await this.youtubeDataService.getVideoDetailsById(track.trackId);
         const trackData = {
           title: trackDetails.title,
@@ -93,7 +93,7 @@ export class MediaService {
             name: trackDetails.author.name,
             id: trackDetails.author.id
           },
-          image: trackDetails.media.thumbnails[0].url,
+          image: trackDetails.thumbnails.at(-1).url,
           videoId: trackDetails.videoId,
           track_duration: trackDetails.lengthSeconds,
           addedAt: track.addedAt,

@@ -4,6 +4,8 @@ import { Request, Response } from 'express';
 import ytSearch from 'yt-search';
 import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
+import ytdl from 'ytdl-core';
+
 
 @Injectable()
 export class YoutubeDataService {
@@ -45,8 +47,12 @@ export class YoutubeDataService {
   async getVideoDetailsById(id: string) {
     try {
       const url: string = `https://www.youtube.com/watch?v=${id}`;
-      const info = await this.ytdl.getBasicInfo(url);
+      const info = await ytdl.getBasicInfo(url);
+      // console.log(info.videoDetails);
       return info.videoDetails;
+      // const url: string = `https://www.youtube.com/watch?v=${id}`;
+      // const info = await this.ytdl.getBasicInfo(url);
+      // return info.videoDetails;
     } catch (e) {
       throw new HttpException('id invalid', HttpStatus.INTERNAL_SERVER_ERROR);
     }
