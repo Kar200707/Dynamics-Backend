@@ -3,7 +3,7 @@ import { DriveService } from '../../google/drive/drive.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../../auth/schemas/user.schema';
 import { Model } from 'mongoose';
-import { Track, TrackDocument } from './schemas/track-details.schema';``
+import { Track, TrackDocument } from './schemas/track-details.schema';
 import { YoutubeDataService } from '../../google/youtube-data/youtube-data.service';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class MediaService {
     @InjectModel(Track.name) private readonly Tracks: Model<TrackDocument>,
     @InjectModel(User.name) private readonly Users: Model<UserDocument>,
     private youtubeDataService: YoutubeDataService,
-    private driveSerivce: DriveService) {  }
+    private driveService: DriveService) {  }
 
   async getTrackByCategory (category: string, access_token: string) {
     if (!access_token) {
@@ -54,7 +54,7 @@ export class MediaService {
     if (user && user.id) {
       const favoriteTrackList = [];
 
-      await Promise.race(user.trackFavorites.map(async (track) => {
+      await Promise.all(user.trackFavorites.map(async (track) => {
         const trackDetails: any = await this.youtubeDataService.getVideoDetailsById(track.trackId);
         const trackData = {
           title: trackDetails.title,
