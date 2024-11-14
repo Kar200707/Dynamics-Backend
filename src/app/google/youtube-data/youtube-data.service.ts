@@ -12,7 +12,9 @@ export class YoutubeDataService {
   private youtubeInfo: Client = new Client();
 
   constructor() {
-    this.ytdl = new YtdlCore();
+    this.ytdl = new YtdlCore({
+      logDisplay: ["success", "info", "error"]
+    });
   }
 
   async getChannelInfo(channelId: string): Promise<any> {
@@ -41,9 +43,13 @@ export class YoutubeDataService {
   }
 
   async getVideoDetailsById(id: string) {
-    const url: string = `https://www.youtube.com/watch?v=${id}`;
-    const info = await this.ytdl.getBasicInfo(url);
-    return info.videoDetails;
+    try {
+      const url: string = `https://www.youtube.com/watch?v=${id}`;
+      const info = await this.ytdl.getBasicInfo(url);
+      return info.videoDetails;
+    } catch (e) {
+      throw new HttpException('id invalid', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   async getVideoSearchList(query: string): Promise<any> {
