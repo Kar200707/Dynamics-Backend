@@ -5,9 +5,12 @@ import { User, UserDocument } from '../../auth/schemas/user.schema';
 import { Model } from 'mongoose';
 import { Track, TrackDocument } from './schemas/track-details.schema';
 import { YoutubeDataService } from '../../google/youtube-data/youtube-data.service';
+import { YtdlCore } from '@ybd-project/ytdl-core';
+import ytdl from 'ytdl-core';
 
 @Injectable()
 export class MediaService {
+  ytdl: YtdlCore = new YtdlCore();
 
   constructor(
     @InjectModel(Track.name) private readonly Tracks: Model<TrackDocument>,
@@ -53,7 +56,7 @@ export class MediaService {
 
     if (user && user.id) {
       const favoriteTrackList = [];
-
+      let int = 0;
       await Promise.all(user.trackFavorites.map(async (track) => {
         const trackDetails: any = await this.youtubeDataService.getVideoDetailsById(track.trackId);
         const trackData = {
@@ -70,6 +73,7 @@ export class MediaService {
           likes: trackDetails.likes,
           description: trackDetails.description,
         };
+        int = 1;
         favoriteTrackList.push(trackData);
       }));
 
@@ -215,6 +219,16 @@ export class MediaService {
       );
 
       return { message: 'Track removed from favorites' };
+    } else {
+      throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getRecByVideoId(trackId: string, access_token: string) {
+    const user = await this.Users.findOne({ userLocalToken: access_token });
+    if (user.id) {
+      const results = await ytdl.getBasicInfo(trackId);
+      return results.related_videos.slice(0, 10);
     } else {
       throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
     }

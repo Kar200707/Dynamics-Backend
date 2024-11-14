@@ -6,6 +6,11 @@ export class MediaController {
 
   constructor(private mediaService: MediaService) {  }
 
+  @Post('getRecById')
+  async getRecById(@Body() body: { access_token: string, trackId: string }) {
+    return await this.mediaService.getRecByVideoId(body.trackId, body.access_token);
+  }
+
   @Post('track-details/add-favorites')
   async addFavoritesTrack(@Body() body: { access_token: string, trackId: string }) {
     return await this.mediaService.addFavoriteTracks(body.trackId, body.access_token);

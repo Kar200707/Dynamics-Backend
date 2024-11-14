@@ -89,8 +89,9 @@ export class YoutubeDataService {
       const totalSize = parseInt(videoInfo.videoDetails.lengthSeconds) * 1024 * 1024;
 
       const stream = await this.ytdl.download(url, {
-        quality: "highest",
+        quality: "highestaudio",
         filter: "audioonly",
+
       });
 
       const pipeableStream = toPipeableStream(stream);
