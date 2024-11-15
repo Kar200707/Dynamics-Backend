@@ -227,8 +227,31 @@ export class MediaService {
   async getRecByVideoId(trackId: string, access_token: string) {
     const user = await this.Users.findOne({ userLocalToken: access_token });
     if (user.id) {
-      const results = await ytdl.getBasicInfo(trackId);
-      return results.related_videos.slice(0, 10);
+      try {
+        const ytdl = new YtdlCore();
+        const results:any = await ytdl.getBasicInfo(trackId);
+        const recTrackList = [];
+        results.relatedVideos.slice(0, 10).map(async (track:any) => {
+          const trackData = {
+            title: track.title,
+            author: {
+              name: track.author.name,
+              id: track.author.id
+            },
+            image: track.thumbnails.at(-1).url,
+            videoId: track.id,
+            track_duration: track.lengthSeconds,
+            views: track.viewCount,
+            likes: track.likes,
+            description: null,
+          };
+          recTrackList.push(trackData);
+        })
+        return recTrackList;
+      } catch (e) {
+        console.log(e);
+        throw new HttpException('', HttpStatus.INTERNAL_SERVER_ERROR)
+      }
     } else {
       throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
     }
