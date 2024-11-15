@@ -85,6 +85,9 @@ export class YoutubeDataService {
       res.setHeader('Content-Type', type === 'audio' ? 'audio/webm' : 'video/mp4');
       res.setHeader('Connection', 'keep-alive');
       res.setHeader('Accept-Ranges', 'bytes');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       const videoInfo:any = await this.ytdl.getBasicInfo(url);
       const totalSize = parseInt(videoInfo.videoDetails.lengthSeconds) * 1024 * 1024;
 
