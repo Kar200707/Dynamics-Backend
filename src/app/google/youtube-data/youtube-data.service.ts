@@ -15,7 +15,7 @@ export class YoutubeDataService {
 
   constructor() {
     this.ytdl = new YtdlCore({
-      logDisplay: ["success", "info", "error"]
+      logDisplay: ["success", "info", "error", "debug"]
     });
   }
 
@@ -89,8 +89,7 @@ export class YoutubeDataService {
 
       const stream = await this.ytdl.download(url, {
         quality: "highestaudio",
-        filter: "audioonly",
-
+        filter: "audioonly"
       });
 
       const pipeableStream = toPipeableStream(stream);
@@ -134,4 +133,6 @@ export class YoutubeDataService {
       throw new HttpException(`Failed to stream ${type}: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+
 }

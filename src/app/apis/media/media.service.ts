@@ -6,7 +6,6 @@ import { Model } from 'mongoose';
 import { Track, TrackDocument } from './schemas/track-details.schema';
 import { YoutubeDataService } from '../../google/youtube-data/youtube-data.service';
 import { YtdlCore } from '@ybd-project/ytdl-core';
-import ytdl from 'ytdl-core';
 
 @Injectable()
 export class MediaService {
@@ -224,14 +223,14 @@ export class MediaService {
     }
   }
 
-  async getRecByVideoId(trackId: string, access_token: string) {
+  async getPlayerInfoByVideoId(trackId: string, access_token: string) {
     const user = await this.Users.findOne({ userLocalToken: access_token });
     if (user.id) {
       try {
         const ytdl = new YtdlCore();
-        const results:any = await ytdl.getBasicInfo(trackId);
+        const result:any = await ytdl.getBasicInfo(trackId);
         const recTrackList = [];
-        results.relatedVideos.slice(0, 10).map(async (track:any) => {
+        result.relatedVideos.slice(0, 10).map(async (track:any) => {
           const trackData = {
             title: track.title,
             author: {
@@ -247,7 +246,12 @@ export class MediaService {
           };
           recTrackList.push(trackData);
         })
-        return recTrackList;
+        return {
+          description: result.videoDetails.description,
+          likes: result.videoDetails.likes,
+          views: result.videoDetails.viewCount,
+          recTracks: recTrackList,
+        };
       } catch (e) {
         console.log(e);
         throw new HttpException('', HttpStatus.INTERNAL_SERVER_ERROR)

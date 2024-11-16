@@ -34,6 +34,7 @@
     "@types/punycode": "^2.1.4",
     "@types/validator": "^13.12.0",
     "@ybd-project/ytdl-core": "^6.0.8",
+    "@yemreak/yt-dlp": "^1.1.5",
     "axios": "^1.7.2",
     "bcrypt": "^5.1.1",
     "get-audio-duration": "^4.0.1",
