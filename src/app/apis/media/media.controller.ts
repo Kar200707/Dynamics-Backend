@@ -1,10 +1,14 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Res } from '@nestjs/common';
 import { MediaService } from './media.service';
+import * as url from 'node:url';
+import { YoutubeDataService } from '../../google/youtube-data/youtube-data.service';
 
 @Controller('media')
 export class MediaController {
 
-  constructor(private mediaService: MediaService) {  }
+  constructor(
+    private ytDataService: YoutubeDataService,
+    private mediaService: MediaService) {  }
 
   @Post('getPlayerInfoByVideoId')
   async getPlayerInfoByVideoId(@Body() body: { access_token: string, trackId: string }) {

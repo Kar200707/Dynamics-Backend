@@ -4,7 +4,8 @@ import { Request, Response } from 'express';
 import ytSearch from 'yt-search';
 import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
-import ytdl from 'ytdl-core';
+// import ytdl from 'ytdl-core';
+import ytdl from '@distube/ytdl-core';
 
 
 @Injectable()
@@ -82,57 +83,50 @@ export class YoutubeDataService {
     const url = `https://www.youtube.com/watch?v=${videoId}`;
 
     try {
-      res.setHeader('Content-Type', type === 'audio' ? 'audio/webm' : 'video/mp4');
+      const contentType = type === 'audio' ? 'audio/webm' : 'video/mp4';
+      res.setHeader('Content-Type', contentType);
       res.setHeader('Connection', 'keep-alive');
-      const videoInfo:any = await this.ytdl.getBasicInfo(url);
+
+      const videoInfo = await ytdl.getBasicInfo(url);
       const totalSize = parseInt(videoInfo.videoDetails.lengthSeconds) * 1024 * 1024;
 
-      const stream = await this.ytdl.download(url, {
-        quality: "highestaudio",
-        filter: "audioonly"
-      });
+      const options: ytdl.downloadOptions = {
+        quality: quality,
+        filter: type === 'audio' ? 'audioonly' : 'video',
+      };
 
-      const pipeableStream = toPipeableStream(stream);
+      const stream = ytdl(url, options);
 
       const range = req.headers.range;
 
       if (range) {
-        const [start, end] = range.replace(/bytes=/, "").split("-");
+        const [start, end] = range.replace(/bytes=/, '').split('-');
         const startByte = parseInt(start, 10) || 0;
         const endByte = end ? parseInt(end, 10) : totalSize - 1;
-        const chunkSize = (endByte - startByte) + 1;
+        const chunkSize = endByte - startByte + 1;
 
         res.setHeader('Content-Range', `bytes ${startByte}-${endByte}/${totalSize}`);
         res.setHeader('Content-Length', chunkSize);
         res.status(HttpStatus.PARTIAL_CONTENT);
 
-        let bytesWritten = 0;
-        pipeableStream.on('data', (chunk) => {
-          if (bytesWritten + chunk.length > chunkSize) {
-            chunk = chunk.slice(0, chunkSize - bytesWritten);
-          }
-          bytesWritten += chunk.length;
+        stream.on('data', (chunk) => {
           res.write(chunk);
-          if (bytesWritten >= chunkSize) {
-            pipeableStream.destroy();
-          }
         });
 
-        pipeableStream.on('end', () => {
+        stream.on('end', () => {
           res.end();
         });
-        pipeableStream.on('error', (err: any) => {
+
+        stream.on('error', (err) => {
           console.error('Stream error:', err);
-          res.status(500).send('Error streaming data');
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming data');
         });
       } else {
-        pipeableStream.pipe(res);
+        stream.pipe(res);
       }
     } catch (error) {
-      this.logger.error(`Failed to stream ${type}: ${error.message}`);
+      console.error(`Failed to stream ${type}: ${error.message}`);
       throw new HttpException(`Failed to stream ${type}: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
-
 }
