@@ -6,6 +6,8 @@ import { Model } from 'mongoose';
 import { Track, TrackDocument } from './schemas/track-details.schema';
 import { YoutubeDataService } from '../../google/youtube-data/youtube-data.service';
 import { YtdlCore } from '@ybd-project/ytdl-core';
+import sharp from 'sharp';
+import * as axios from 'axios';
 
 @Injectable()
 export class MediaService {
@@ -16,6 +18,27 @@ export class MediaService {
     @InjectModel(User.name) private readonly Users: Model<UserDocument>,
     private youtubeDataService: YoutubeDataService,
     private driveService: DriveService) {  }
+
+  async cropYtImage(url: string): Promise<Buffer> {
+    try {
+      const response = await axios.default({
+        url,
+        method: 'GET',
+        responseType: 'arraybuffer',
+      });
+
+      const imageBuffer = Buffer.from(response.data);
+
+      const croppedImage = await sharp(imageBuffer)
+        .resize(500, 500, { fit: 'cover' })
+        .toFormat('jpeg')
+        .toBuffer();
+
+      return croppedImage;
+    } catch (error) {
+      throw new HttpException('Failed to process image', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 
   async getTrackByCategory (category: string, access_token: string) {
     if (!access_token) {

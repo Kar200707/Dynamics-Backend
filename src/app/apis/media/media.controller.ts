@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, Query, Res } from '@nestjs/common';
 import { MediaService } from './media.service';
 import * as url from 'node:url';
 import { YoutubeDataService } from '../../google/youtube-data/youtube-data.service';
+import { Response } from 'express';
 
 @Controller('media')
 export class MediaController {
@@ -9,6 +10,23 @@ export class MediaController {
   constructor(
     private ytDataService: YoutubeDataService,
     private mediaService: MediaService) {  }
+
+  @Get('cropImage')
+  async cropImage(@Query('url') url: string, @Res() res: Response) {
+    try {
+      if (!url) {
+        return res.status(400).send('URL parameter is required');
+      }
+
+      const imageBuffer = await this.mediaService.cropYtImage(url);
+
+      res.set('Content-Type', 'image/jpeg');
+      res.send(imageBuffer);
+    } catch (error) {
+      console.error('Error processing image:', error);
+      res.status(500).send('Failed to process image');
+    }
+  }
 
   @Post('getPlayerInfoByVideoId')
   async getPlayerInfoByVideoId(@Body() body: { access_token: string, trackId: string }) {

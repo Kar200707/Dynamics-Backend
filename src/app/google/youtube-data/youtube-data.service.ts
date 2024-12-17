@@ -69,6 +69,10 @@ export class YoutubeDataService {
     }
   }
 
+  async ytCropImage() {
+
+  }
+
   async streamAudio(videoId: string, req: Request, res: Response, type: string, quality: string) {
     const validTypes = ['video', 'audio'];
     const validQualities = ['lowest', 'highest', 'highestaudio', 'lowestaudio', 'highestvideo', 'lowestvideo'];
