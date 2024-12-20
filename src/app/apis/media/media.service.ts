@@ -253,29 +253,35 @@ export class MediaService {
         const ytdl = new YtdlCore();
         const result:any = await ytdl.getBasicInfo(trackId);
         const recTrackList = [];
-        result.relatedVideos.slice(0, 10).map(async (track:any) => {
-          const trackData = {
-            title: track.title,
-            author: {
-              name: track.author.name,
-              id: track.author.id
-            },
-            image: track.thumbnails.at(-1).url,
-            videoId: track.id,
-            track_duration: track.lengthSeconds,
-            views: track.viewCount,
-            likes: track.likes,
-            description: null,
-          };
-          recTrackList.push(trackData);
-        })
+        if (result.relatedVideos) {
+          result.relatedVideos.slice(0, 10).map(async (track:any) => {
+            const trackData = {
+              title: track.title,
+              author: {
+                name: track.author.name,
+                id: track.author.id
+              },
+              image: track.thumbnails.at(-1).url,
+              videoId: track.id,
+              track_duration: track.lengthSeconds,
+              views: track.viewCount,
+              likes: track.likes,
+              description: null,
+            };
+            recTrackList.push(trackData);
+          })
 
-        return {
-          description: result.videoDetails.description,
-          likes: result.videoDetails.likes,
-          views: result.videoDetails.viewCount,
-          recTracks: recTrackList,
-        };
+          return {
+            description: result.videoDetails.description,
+            likes: result.videoDetails.likes,
+            views: result.videoDetails.viewCount,
+            recTracks: recTrackList,
+          };
+        } else {
+          return { message: 'Not Details' }
+        }
+
+
       } catch (e) {
         console.log(e);
         throw new HttpException('', HttpStatus.INTERNAL_SERVER_ERROR)
