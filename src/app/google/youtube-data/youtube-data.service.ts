@@ -1,23 +1,21 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { toPipeableStream, YtdlCore } from '@ybd-project/ytdl-core';
 import { Request, Response } from 'express';
 import ytSearch from 'yt-search';
 import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
 // import ytdl from 'ytdl-core';
 import ytdl from '@distube/ytdl-core';
+import { YtDlp } from '@yemreak/yt-dlp';
 
 
 @Injectable()
 export class YoutubeDataService {
   private logger: Logger = new Logger(YoutubeDataService.name);
-  private ytdl: YtdlCore;
+  private ytdl: YtDlp;
   private youtubeInfo: Client = new Client();
 
   constructor() {
-    this.ytdl = new YtdlCore({
-      logDisplay: ["success", "info", "error", "debug"]
-    });
+
   }
 
   async getChannelInfo(channelId: string): Promise<any> {
@@ -41,7 +39,7 @@ export class YoutubeDataService {
 
   async getAuthorIdByVideoId(id: string) {
     const url: string = `https://www.youtube.com/watch?v=${id}`;
-    const details = await this.ytdl.getBasicInfo(url);
+    const details = await ytdl.getBasicInfo(url);
     return { authorId: details.videoDetails.author.id };
   }
 
@@ -67,10 +65,6 @@ export class YoutubeDataService {
       this.logger.error('Error searching YouTube:', error.message);
       throw new HttpException('Error searching YouTube', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-  }
-
-  async ytCropImage() {
-
   }
 
   async streamAudio(videoId: string, req: Request, res: Response, type: string, quality: string) {
