@@ -5,13 +5,11 @@ import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
 // import ytdl from 'ytdl-core';
 import ytdl from '@distube/ytdl-core';
-import { YtDlp } from '@yemreak/yt-dlp';
 
 
 @Injectable()
 export class YoutubeDataService {
   private logger: Logger = new Logger(YoutubeDataService.name);
-  private ytdl: YtDlp;
   private youtubeInfo: Client = new Client();
 
   constructor() {
