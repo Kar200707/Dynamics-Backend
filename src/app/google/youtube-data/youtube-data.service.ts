@@ -4,12 +4,13 @@ import ytSearch from 'yt-search';
 import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
 // import ytdl from 'ytdl-core';
-import ytdl from '@distube/ytdl-core';
+import { YtdlCore, toPipeableStream } from '@ybd-project/ytdl-core';
 
 
 @Injectable()
 export class YoutubeDataService {
   private logger: Logger = new Logger(YoutubeDataService.name);
+  private ytdl: YtdlCore = new YtdlCore();
   private youtubeInfo: Client = new Client();
 
   constructor() {
@@ -37,14 +38,14 @@ export class YoutubeDataService {
 
   async getAuthorIdByVideoId(id: string) {
     const url: string = `https://www.youtube.com/watch?v=${id}`;
-    const details = await ytdl.getBasicInfo(url);
+    const details = await this.ytdl.getBasicInfo(url);
     return { authorId: details.videoDetails.author.id };
   }
 
   async getVideoDetailsById(id: string) {
     try {
       const url: string = `https://www.youtube.com/watch?v=${id}`;
-      const info = await ytdl.getBasicInfo(url);
+      const info = await this.ytdl.getBasicInfo(url);
       // console.log(info.videoDetails);
       return info.videoDetails;
       // const url: string = `https://www.youtube.com/watch?v=${id}`;
@@ -83,18 +84,18 @@ export class YoutubeDataService {
       res.setHeader('Content-Type', contentType);
       res.setHeader('Connection', 'keep-alive');
 
-      const videoInfo = await ytdl.getBasicInfo(url);
-      const totalSize = parseInt(videoInfo.videoDetails.lengthSeconds) * 1024 * 1024;
+      const videoInfo = await this.ytdl.getBasicInfo(url);
+      const totalSize = videoInfo.videoDetails.lengthSeconds * 1024 * 1024;
 
-      const options: ytdl.downloadOptions = {
-        quality: quality,
+      const stream = await this.ytdl.download(url, {
+        quality,
         filter: type === 'audio' ? 'audioonly' : 'video',
-      };
+      });
 
-      const stream = ytdl(url, options);
+      // Convert the ReadableStream to a pipeable Node.js stream
+      const nodeStream = toPipeableStream(stream);
 
       const range = req.headers.range;
-
       if (range) {
         const [start, end] = range.replace(/bytes=/, '').split('-');
         const startByte = parseInt(start, 10) || 0;
@@ -105,20 +106,23 @@ export class YoutubeDataService {
         res.setHeader('Content-Length', chunkSize);
         res.status(HttpStatus.PARTIAL_CONTENT);
 
-        stream.on('data', (chunk) => {
+        nodeStream.on('data', (chunk) => {
           res.write(chunk);
         });
 
-        stream.on('end', () => {
-          res.end();
+        nodeStream.on('end', () => {
+          res.end();  // Ensure the response is ended properly after the stream is complete
         });
 
-        stream.on('error', (err) => {
+        nodeStream.on('error', (err) => {
           console.error('Stream error:', err);
           res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming data');
         });
       } else {
-        stream.pipe(res);
+        nodeStream.pipe(res);
+        nodeStream.on('end', () => {
+          res.end();  // Ensure response ends if there is no range
+        });
       }
     } catch (error) {
       console.error(`Failed to stream ${type}: ${error.message}`);
