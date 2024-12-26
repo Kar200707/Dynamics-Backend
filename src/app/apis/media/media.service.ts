@@ -250,8 +250,7 @@ export class MediaService {
     const user = await this.Users.findOne({ userLocalToken: access_token });
     if (user.id) {
       try {
-        const ytdl = new YtdlCore();
-        const result:any = await ytdl.getBasicInfo(trackId);
+        const result:any = await this.ytdl.getBasicInfo(trackId);
         const recTrackList = [];
         if (result.relatedVideos) {
           result.relatedVideos.slice(0, 10).map(async (track:any) => {
@@ -272,6 +271,14 @@ export class MediaService {
           })
 
           return {
+            title: result.videoDetails.title,
+            author: {
+              name: result.videoDetails.author?.name,
+              id: result.videoDetails.author?.id
+            },
+            image: result.videoDetails.thumbnails?.at(-1).url,
+            videoId: result.videoDetails.videoId,
+            track_duration: result.videoDetails.lengthSeconds,
             description: result.videoDetails.description,
             likes: result.videoDetails.likes,
             views: result.videoDetails.viewCount,
