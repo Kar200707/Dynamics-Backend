@@ -3,16 +3,25 @@ import { Request, Response } from 'express';
 import ytSearch from 'yt-search';
 import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
-// import ytdl from 'ytdl-core';
-import { YtdlCore, toPipeableStream } from '@ybd-project/ytdl-core';
-import { video_basic_info, stream } from 'play-dl';
-import { Readable } from 'stream';
-
+import { YtdlCore, YTDL_VideoInfo, YTDL_VideoFormat, toPipeableStream } from '@ybd-project/ytdl-core/serverless';
 
 @Injectable()
 export class YoutubeDataService {
   private logger: Logger = new Logger(YoutubeDataService.name);
-  private ytdl: YtdlCore = new YtdlCore();
+  private ytdl: YtdlCore = new YtdlCore({
+    hl: 'en',
+    gl: 'US',
+    disableDefaultClients: true,
+    disablePoTokenAutoGeneration: true,
+    disableInitialSetup: true,
+    parsesHLSFormat: false,
+    noUpdate: true,
+    logDisplay: ['warning', 'error'],
+    clients: ['mweb', 'web', 'android', 'ios'],
+    html5Player: {
+      useRetrievedFunctionsFromGithub: true,
+    },
+  });
   private youtubeInfo: Client = new Client();
 
   constructor() {
@@ -91,8 +100,7 @@ export class YoutubeDataService {
       const totalSize = videoInfo.videoDetails.lengthSeconds * 1024 * 1024;
 
       const stream = await this.ytdl.download(url, {
-        quality,
-        filter: type === 'audio' ? 'audioonly' : 'video',
+        filter: "audioonly"
       });
 
       const range = req.headers.range;
