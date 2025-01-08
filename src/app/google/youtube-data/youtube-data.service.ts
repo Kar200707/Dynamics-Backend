@@ -12,7 +12,6 @@ export class YoutubeDataService {
     hl: 'en',
     gl: 'US',
     disableDefaultClients: true,
-    disablePoTokenAutoGeneration: true,
     disableInitialSetup: true,
     parsesHLSFormat: false,
     noUpdate: true,
