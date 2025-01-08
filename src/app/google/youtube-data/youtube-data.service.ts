@@ -5,6 +5,8 @@ import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
 // import ytdl from 'ytdl-core';
 import { YtdlCore, toPipeableStream } from '@ybd-project/ytdl-core';
+import { video_basic_info, stream } from 'play-dl';
+import { Readable } from 'stream';
 
 
 @Injectable()
@@ -52,6 +54,7 @@ export class YoutubeDataService {
       // const info = await this.ytdl.getBasicInfo(url);
       // return info.videoDetails;
     } catch (e) {
+      console.log(e);
       throw new HttpException('id invalid', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -92,9 +95,6 @@ export class YoutubeDataService {
         filter: type === 'audio' ? 'audioonly' : 'video',
       });
 
-      // Convert the ReadableStream to a pipeable Node.js stream
-      const nodeStream = toPipeableStream(stream);
-
       const range = req.headers.range;
       if (range) {
         const [start, end] = range.replace(/bytes=/, '').split('-');
@@ -106,23 +106,20 @@ export class YoutubeDataService {
         res.setHeader('Content-Length', chunkSize);
         res.status(HttpStatus.PARTIAL_CONTENT);
 
-        nodeStream.on('data', (chunk) => {
+        toPipeableStream(stream).on('data', (chunk) => {
           res.write(chunk);
         });
 
-        nodeStream.on('end', () => {
-          res.end();  // Ensure the response is ended properly after the stream is complete
+        toPipeableStream(stream).on('end', () => {
+          res.end();
         });
 
-        nodeStream.on('error', (err) => {
+        toPipeableStream(stream).on('error', (err) => {
           console.error('Stream error:', err);
           res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming data');
         });
       } else {
-        nodeStream.pipe(res);
-        nodeStream.on('end', () => {
-          res.end();  // Ensure response ends if there is no range
-        });
+        toPipeableStream(stream).pipe(res);
       }
     } catch (error) {
       console.error(`Failed to stream ${type}: ${error.message}`);

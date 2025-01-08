@@ -247,6 +247,7 @@ export class MediaService {
   }
 
   async getPlayerInfoByVideoId(trackId: string, access_token: string) {
+    // console.log('get');
     const user = await this.Users.findOne({ userLocalToken: access_token });
     if (user.id) {
       try {
