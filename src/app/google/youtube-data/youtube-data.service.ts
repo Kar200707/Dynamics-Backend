@@ -100,7 +100,8 @@ export class YoutubeDataService {
       const totalSize = videoInfo.videoDetails.lengthSeconds * 1024 * 1024;
 
       const stream = await this.ytdl.download(url, {
-        filter: "audioonly"
+        filter: "audioonly",
+        quality: "highestaudio"
       });
 
       const range = req.headers.range;
