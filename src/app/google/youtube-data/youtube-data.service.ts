@@ -9,7 +9,6 @@ import { YtdlCore, YTDL_VideoInfo, YTDL_VideoFormat, toPipeableStream } from '@y
 export class YoutubeDataService {
   private logger: Logger = new Logger(YoutubeDataService.name);
   private ytdl: YtdlCore = new YtdlCore({
-    
     hl: 'en',
     gl: 'US',
     disableDefaultClients: true,
