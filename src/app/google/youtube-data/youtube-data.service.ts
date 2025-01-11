@@ -16,7 +16,7 @@ export class YoutubeDataService {
     parsesHLSFormat: false,
     noUpdate: true,
     logDisplay: ['warning', 'error'],
-    clients: ['mweb', 'web', 'android', 'ios'],
+    clients: ['mweb', 'web', 'android', 'ios', 'tv', 'tvEmbedded', 'webCreator', 'webEmbedded'],
     html5Player: {
       useRetrievedFunctionsFromGithub: true,
     },

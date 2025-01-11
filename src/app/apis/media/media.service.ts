@@ -80,7 +80,7 @@ export class MediaService {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
 
-    const isFavorite = user.trackFavorites.some(track => track.trackId === trackId);
+    const isFavorite = user.trackFavorites.some(track => track.videoId === trackId);
 
     return { isFavorite };
   }
@@ -90,29 +90,27 @@ export class MediaService {
     const user = await this.Users.findOne({ userLocalToken: access_token });
 
     if (user && user.id) {
-      const favoriteTrackList = [];
-      let int = 0;
-      await Promise.all(user.trackFavorites.map(async (track) => {
-        const trackDetails: any = await this.youtubeDataService.getVideoDetailsById(track.trackId);
-        const trackData = {
-          title: trackDetails.title,
-          author: {
-            name: trackDetails.author.name,
-            id: trackDetails.author.id
-          },
-          image: trackDetails.thumbnails.at(-1).url,
-          videoId: trackDetails.videoId,
-          track_duration: trackDetails.lengthSeconds,
-          addedAt: track.addedAt,
-          views: trackDetails.viewCount,
-          likes: trackDetails.likes,
-          description: trackDetails.description,
-        };
-        int = 1;
-        favoriteTrackList.push(trackData);
-      }));
+      // await Promise.all(user.trackFavorites.map(async (track) => {
+      //   const trackDetails: any = await this.youtubeDataService.getVideoDetailsById(track.trackId);
+      //   const trackData = {
+      //     title: trackDetails.title,
+      //     author: {
+      //       name: trackDetails.author.name,
+      //       id: trackDetails.author.id
+      //     },
+      //     image: trackDetails.thumbnails.at(-1).url,
+      //     videoId: trackDetails.videoId,
+      //     track_duration: trackDetails.lengthSeconds,
+      //     addedAt: track.addedAt,
+      //     views: trackDetails.viewCount,
+      //     likes: trackDetails.likes,
+      //     description: trackDetails.description,
+      //   };
+      //   int = 1;
+      //   favoriteTrackList.push(trackData);
+      // }));
 
-      return favoriteTrackList;
+      return user.trackFavorites;
     } else {
       throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
     }
@@ -122,28 +120,26 @@ export class MediaService {
     const user = await this.Users.findOne({ userLocalToken: access_token });
 
     if (user && user.id) {
-      const historyTrackList = [];
+      // await Promise.all(user.playHistory.map(async (track) => {
+      //   const trackDetails: any = await this.youtubeDataService.getVideoDetailsById(track.trackId);
+      //   const trackData = {
+      //     title: trackDetails.title,
+      //     author: {
+      //       name: trackDetails.author.name,
+      //       id: trackDetails.author.id
+      //     },
+      //     image: trackDetails.thumbnails.at(-1).url,
+      //     videoId: trackDetails.videoId,
+      //     track_duration: trackDetails.lengthSeconds,
+      //     addedAt: track.addedAt,
+      //     views: trackDetails.viewCount,
+      //     likes: trackDetails.likes,
+      //     description: trackDetails.description,
+      //   };
+      //   historyTrackList.push(trackData);
+      // }));
 
-      await Promise.all(user.playHistory.map(async (track) => {
-        const trackDetails: any = await this.youtubeDataService.getVideoDetailsById(track.trackId);
-        const trackData = {
-          title: trackDetails.title,
-          author: {
-            name: trackDetails.author.name,
-            id: trackDetails.author.id
-          },
-          image: trackDetails.thumbnails.at(-1).url,
-          videoId: trackDetails.videoId,
-          track_duration: trackDetails.lengthSeconds,
-          addedAt: track.addedAt,
-          views: trackDetails.viewCount,
-          likes: trackDetails.likes,
-          description: trackDetails.description,
-        };
-        historyTrackList.push(trackData);
-      }));
-
-      return historyTrackList;
+      return user.playHistory;
     } else {
       throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
     }
@@ -157,16 +153,27 @@ export class MediaService {
     const user = await this.Users.findOne({ userLocalToken: access_token });
     if (user) {
       const addedUser: any = user.toObject();
+      const trackDetails: any = await this.youtubeDataService.getVideoDetailsById(trackId);
 
-      const existingIndex = addedUser.playHistory.findIndex(entry => entry.trackId === trackId);
+      const existingIndex = addedUser.playHistory.findIndex(entry => entry.videoId === trackId);
 
       if (existingIndex !== -1) {
         addedUser.playHistory.splice(existingIndex, 1);
       }
 
       addedUser.playHistory.unshift({
-        trackId: trackId,
-        addedAt: Date.now()
+        title: trackDetails.title,
+        author: {
+          name: trackDetails.author.name,
+          id: trackDetails.author.id
+        },
+        image: trackDetails.thumbnails.at(-1).url,
+        videoId: trackDetails.videoId,
+        track_duration: trackDetails.lengthSeconds,
+        addedAt: Date.now(),
+        views: trackDetails.viewCount,
+        likes: trackDetails.likes,
+        description: trackDetails.description,
       });
 
       if (addedUser.playHistory.length > 10) {
@@ -231,18 +238,40 @@ export class MediaService {
 
   async addFavoriteTracks(trackId: string, access_token: string) {
     const user = await this.Users.findOne({ userLocalToken: access_token });
-    if (user.id) {
-      const addedUser = user.toObject();
-      addedUser.trackFavorites.push({
-        trackId: trackId,
-        addedAt: Date.now()
-      });
-      await this.Users.findOneAndUpdate({ userLocalToken: access_token }, addedUser);
-      return { message: 'track in favorites has ben add' }
-    } else {
+    if (!user) {
       throw new HttpException('Access token invalid', HttpStatus.BAD_REQUEST);
     }
+
+    const trackDetails: any = await this.youtubeDataService.getVideoDetailsById(trackId);
+    const addedUser: any = user.toObject();
+
+    const existingIndex = addedUser.trackFavorites.findIndex(entry => entry.videoId === trackId);
+
+    if (existingIndex !== -1) {
+      const [existingTrack] = addedUser.trackFavorites.splice(existingIndex, 1);
+      addedUser.trackFavorites.unshift(existingTrack);
+    } else {
+      addedUser.trackFavorites.unshift({
+        title: trackDetails.title,
+        author: {
+          name: trackDetails.author.name,
+          id: trackDetails.author.id,
+        },
+        image: trackDetails.thumbnails.at(-1).url,
+        videoId: trackDetails.videoId,
+        track_duration: trackDetails.lengthSeconds,
+        addedAt: Date.now(),
+        views: trackDetails.viewCount,
+        likes: trackDetails.likes,
+        description: trackDetails.description,
+      });
+    }
+
+    await this.Users.findOneAndUpdate({ userLocalToken: access_token }, { trackFavorites: addedUser.trackFavorites });
+
+    return { message: 'Track added to favorites' };
   }
+
 
   async remFavoriteTracks(trackId: string, access_token: string) {
     const user = await this.Users.findOne({ userLocalToken: access_token });
@@ -250,7 +279,7 @@ export class MediaService {
     if (user && user.id && trackId) {
       await this.Users.updateOne(
         { userLocalToken: access_token },
-        { $pull: { trackFavorites: { trackId: trackId } } }
+        { $pull: { trackFavorites: { videoId: trackId } } }
       );
 
       return { message: 'Track removed from favorites' };
@@ -260,7 +289,6 @@ export class MediaService {
   }
 
   async getPlayerInfoByVideoId(trackId: string, access_token: string) {
-    // console.log('get');
     const user = await this.Users.findOne({ userLocalToken: access_token });
     if (user.id) {
       try {

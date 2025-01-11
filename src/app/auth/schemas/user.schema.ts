@@ -26,16 +26,38 @@ export class User {
   @Prop()
   trackFavorites: [
     {
-      trackId: string,
-      addedAt: number
+      trackId: string;
+      addedAt: number;
+      title: string;
+      author: {
+        name: string;
+        id: string;
+      },
+      image: string;
+      videoId: string;
+      track_duration: number;
+      views: number;
+      likes: number;
+      description: string;
     }
   ];
 
   @Prop()
   playHistory: [
     {
-      trackId: string,
-      addedAt: number
+      trackId: string;
+      addedAt: number;
+      title: string;
+      author: {
+        name: string;
+        id: string;
+      },
+      image: string;
+      videoId: string;
+      track_duration: number;
+      views: number;
+      likes: number;
+      description: string;
     }
   ];
 
