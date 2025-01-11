@@ -87,6 +87,7 @@ export class MediaService {
 
 
   async getFavoriteTracksList(access_token: string) {
+    
     const user = await this.Users.findOne({ userLocalToken: access_token });
 
     if (user && user.id) {
