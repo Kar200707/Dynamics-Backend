@@ -9,14 +9,11 @@ import { YtdlCore, YTDL_VideoInfo, YTDL_VideoFormat, toPipeableStream } from '@y
 export class YoutubeDataService {
   private logger: Logger = new Logger(YoutubeDataService.name);
   private ytdl: YtdlCore = new YtdlCore({
-    hl: 'en',
-    gl: 'US',
-    disableDefaultClients: true,
     disableInitialSetup: true,
-    parsesHLSFormat: false,
+    parsesHLSFormat: true,
+    gl: "AM",
     noUpdate: true,
-    logDisplay: ['warning', 'error'],
-    clients: ['mweb', 'web', 'android', 'ios', 'tv', 'tvEmbedded', 'webCreator', 'webEmbedded'],
+    logDisplay: ['warning', 'error', 'info'],
     html5Player: {
       useRetrievedFunctionsFromGithub: true,
     },
@@ -92,7 +89,7 @@ export class YoutubeDataService {
 
     try {
       const contentType = type === 'audio' ? 'audio/webm' : 'video/mp4';
-      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Type', 'audio/webm');
       res.setHeader('Connection', 'keep-alive');
 
       const videoInfo = await this.ytdl.getBasicInfo(url);
