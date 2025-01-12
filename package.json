@@ -27,6 +27,7 @@
     "@nestjs/core": "^10.0.0",
     "@nestjs/mongoose": "^10.0.6",
     "@nestjs/platform-express": "^10.4.15",
+    "@oreohq/ytdl-core": "^4.15.2",
     "@types/fluent-ffmpeg": "^2.1.24",
     "@types/musicmetadata": "^2.0.9",
     "@types/punycode": "^2.1.4",

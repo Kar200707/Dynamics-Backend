@@ -5,7 +5,7 @@ import { User, UserDocument } from '../../auth/schemas/user.schema';
 import { Model } from 'mongoose';
 import { Track, TrackDocument } from './schemas/track-details.schema';
 import { YoutubeDataService } from '../../google/youtube-data/youtube-data.service';
-import { YtdlCore } from '@ybd-project/ytdl-core/serverless';
+import { YtdlCore } from '@ybd-project/ytdl-core';
 import sharp from 'sharp';
 import * as axios from 'axios';
 

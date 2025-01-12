@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import ytSearch from 'yt-search';
 import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
-import { YtdlCore, YTDL_VideoInfo, YTDL_VideoFormat, toPipeableStream } from '@ybd-project/ytdl-core/serverless';
+import { YtdlCore, toPipeableStream } from '@ybd-project/ytdl-core';
 
 @Injectable()
 export class YoutubeDataService {
