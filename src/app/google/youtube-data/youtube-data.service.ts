@@ -96,18 +96,22 @@ export class YoutubeDataService {
       const videoInfo = await this.ytdl.getBasicInfo(url);
       const totalSize = videoInfo.videoDetails.lengthSeconds * 1024 * 1024;
 
-      const stream = await this.ytdl.download(url, {
-        disableFileCache: true,
-        filter: type === 'audio' ? 'audioonly' : 'videoonly',
-        quality: quality,
-      });
-
       const range = req.headers.range;
       if (range) {
         const [start, end] = range.replace(/bytes=/, '').split('-');
         const startByte = parseInt(start, 10) || 0;
         const endByte = end ? parseInt(end, 10) : totalSize - 1;
         const chunkSize = endByte - startByte + 1;
+
+        const stream = await this.ytdl.download(url, {
+          disableFileCache: true,
+          filter: type === 'audio' ? 'audioonly' : 'videoonly',
+          quality: quality,
+          range: {
+            start: startByte,
+            end: endByte,
+          }
+        });
 
         res.setHeader('Content-Range', `bytes ${startByte}-${endByte}/${totalSize}`);
         res.setHeader('Content-Length', chunkSize);
@@ -121,6 +125,11 @@ export class YoutubeDataService {
         });
 
       } else {
+        const stream = await this.ytdl.download(url, {
+          disableFileCache: true,
+          filter: type === 'audio' ? 'audioonly' : 'videoonly',
+          quality: quality,
+        });
         res.setHeader('Content-Length', totalSize);
         toPipeableStream(stream).pipe(res);
       }
