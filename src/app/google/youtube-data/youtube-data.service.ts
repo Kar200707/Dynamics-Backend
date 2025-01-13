@@ -27,6 +27,7 @@ export class YoutubeDataService {
 
   async getChannelInfo(channelId: string): Promise<any> {
     try {
+      
       const videos = ytch.getChannelVideos({
         channelId
       });
