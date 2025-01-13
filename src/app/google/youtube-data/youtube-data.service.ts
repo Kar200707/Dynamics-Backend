@@ -4,6 +4,7 @@ import ytSearch from 'yt-search';
 import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
 import { YtdlCore, toPipeableStream } from '@ybd-project/ytdl-core';
+import ytdl from 'ytdl-core'
 
 @Injectable()
 export class YoutubeDataService {
@@ -92,15 +93,17 @@ export class YoutubeDataService {
       res.setHeader('Content-Type', 'audio/webm');
       res.setHeader('Connection', 'keep-alive');
 
-      const videoInfo = await this.ytdl.getBasicInfo(url);
-      const totalSize = videoInfo.videoDetails.lengthSeconds * 1024 * 1024;
+      const videoInfo = await this.ytdl.getFullInfo(url);
+      const totalSize = videoInfo.videoDetails.lengthSeconds;
 
       const stream = await this.ytdl.download(url, {
+        disableFileCache: true,
         filter: "audioonly",
         quality: "highestaudio"
       });
 
       const range = req.headers.range;
+
       if (range) {
         const [start, end] = range.replace(/bytes=/, '').split('-');
         const startByte = parseInt(start, 10) || 0;
