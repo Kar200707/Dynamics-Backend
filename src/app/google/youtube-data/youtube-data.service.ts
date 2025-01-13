@@ -90,20 +90,19 @@ export class YoutubeDataService {
 
     try {
       const contentType = type === 'audio' ? 'audio/webm' : 'video/mp4';
-      res.setHeader('Content-Type', 'audio/webm');
+      res.setHeader('Content-Type', contentType);
       res.setHeader('Connection', 'keep-alive');
 
-      const videoInfo = await this.ytdl.getFullInfo(url);
-      const totalSize = videoInfo.videoDetails.lengthSeconds;
+      const videoInfo = await this.ytdl.getBasicInfo(url);
+      const totalSize = videoInfo.videoDetails.lengthSeconds * 1024 * 1024;
 
       const stream = await this.ytdl.download(url, {
         disableFileCache: true,
-        filter: "audioonly",
-        quality: "highestaudio"
+        filter: type === 'audio' ? 'audioonly' : 'videoonly',
+        quality: quality,
       });
 
       const range = req.headers.range;
-
       if (range) {
         const [start, end] = range.replace(/bytes=/, '').split('-');
         const startByte = parseInt(start, 10) || 0;
@@ -114,24 +113,21 @@ export class YoutubeDataService {
         res.setHeader('Content-Length', chunkSize);
         res.status(HttpStatus.PARTIAL_CONTENT);
 
-        toPipeableStream(stream).on('data', (chunk) => {
-          res.write(chunk);
-        });
-
-        toPipeableStream(stream).on('end', () => {
-          res.end();
-        });
-
+        toPipeableStream(stream).on('data', chunk => res.write(chunk));
+        toPipeableStream(stream).on('end', () => res.end());
         toPipeableStream(stream).on('error', (err) => {
           console.error('Stream error:', err);
           res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming data');
         });
+
       } else {
+        res.setHeader('Content-Length', totalSize);
         toPipeableStream(stream).pipe(res);
       }
+
     } catch (error) {
       console.error(`Failed to stream ${type}: ${error.message}`);
-      throw new HttpException(`Failed to stream ${type}: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(`Failed to stream ${type}: ${error.message}`);
     }
   }
 }
