@@ -17,6 +17,8 @@ export class MediaService {
       gl: "AM",
       noUpdate: true,
       logDisplay: ['warning', 'error', 'info'],
+      disableDefaultClients: true,
+      clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
       html5Player: {
         useRetrievedFunctionsFromGithub: true,
       }
