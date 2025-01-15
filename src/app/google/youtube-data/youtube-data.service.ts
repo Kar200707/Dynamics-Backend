@@ -93,11 +93,12 @@ export class YoutubeDataService {
       res.setHeader('Content-Type', 'audio/webm');
       res.setHeader('Connection', 'keep-alive');
 
-      const videoInfo = await this.ytdl.getFullInfo(url);
+      const videoInfo = await this.ytdl.getBasicInfo(url);
       const totalSize = videoInfo.videoDetails.lengthSeconds * 1024 * 1024;
 
       const stream = await this.ytdl.download(url, {
         disableFileCache: true,
+        disableBasicCache: true,
         filter: "audioonly",
         quality: "highestaudio",
       });
