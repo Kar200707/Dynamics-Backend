@@ -3,8 +3,7 @@ import { Request, Response } from 'express';
 import ytSearch from 'yt-search';
 import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
-import { YtdlCore, toPipeableStream } from '@ybd-project/ytdl-core';
-import ytdl from 'ytdl-core'
+import { YtdlCore, toPipeableStream, YTDL_VideoInfo } from '@ybd-project/ytdl-core';
 
 @Injectable()
 export class YoutubeDataService {
@@ -92,17 +91,22 @@ export class YoutubeDataService {
 
     try {
       const contentType = type === 'audio' ? 'audio/webm' : 'video/mp4';
-      res.setHeader('Content-Type', 'audio/webm');
+      res.setHeader('Content-Type', contentType);
       res.setHeader('Connection', 'keep-alive');
 
-      const videoInfo = await this.ytdl.getBasicInfo(url);
+      const videoInfo: YTDL_VideoInfo = await this.ytdl.getFullInfo(url, {
+        disableFileCache: true,
+        includesRelatedVideo: false,
+        includesNextAPIResponse: true,
+        includesPlayerAPIResponse: true,
+        includesOriginalFormatData: true
+      });
+
       const totalSize = videoInfo.videoDetails.lengthSeconds * 1024 * 1024;
 
-      const stream = await this.ytdl.download(url, {
-        disableFileCache: true,
-        disableBasicCache: true,
-        filter: "audioonly",
-        quality: "highestaudio",
+      const stream = await this.ytdl.downloadFromInfo(videoInfo, {
+        filter: type.toLowerCase() === 'audio' ? "audioonly" : "videoandaudio",
+        quality,
       });
 
       const range = req.headers.range;
@@ -117,9 +121,7 @@ export class YoutubeDataService {
         res.setHeader('Content-Length', chunkSize);
         res.status(HttpStatus.PARTIAL_CONTENT);
 
-        toPipeableStream(stream).on('data', (chunk) => {
-          res.write(chunk);
-        });
+        toPipeableStream(stream).pipe(res);
 
         toPipeableStream(stream).on('end', () => {
           res.end();
