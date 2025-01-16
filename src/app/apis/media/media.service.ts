@@ -12,17 +12,11 @@ import * as axios from 'axios';
 @Injectable()
 export class MediaService {
   ytdl: YtdlCore = new YtdlCore({
-      disableInitialSetup: true,
-      parsesHLSFormat: true,
       gl: "AM",
-      noUpdate: true,
       logDisplay: ['warning', 'error', 'info'],
       disableDefaultClients: true,
       clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-      html5Player: {
-        useRetrievedFunctionsFromGithub: true,
-      }
-    });
+  });
 
   constructor(
     @InjectModel(Track.name) private readonly Tracks: Model<TrackDocument>,
