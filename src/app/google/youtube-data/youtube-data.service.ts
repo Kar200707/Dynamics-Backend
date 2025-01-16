@@ -13,6 +13,7 @@ export class YoutubeDataService {
     logDisplay: ['warning', 'error', 'info'],
     disableDefaultClients: true,
     clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
+    noUpdate: true,
   });
   private youtubeInfo: Client = new Client();
 
