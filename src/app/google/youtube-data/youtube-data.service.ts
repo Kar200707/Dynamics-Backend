@@ -4,6 +4,7 @@ import ytSearch from 'yt-search';
 import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
 import { YtdlCore, toPipeableStream, YTDL_VideoInfo } from '@ybd-project/ytdl-core';
+import { ytmp3 } from 'ruhend-scraper';
 
 @Injectable()
 export class YoutubeDataService {
@@ -83,57 +84,16 @@ export class YoutubeDataService {
     if (!validTypes.includes(type)) {
       throw new HttpException('Invalid type', HttpStatus.BAD_REQUEST);
     }
+
     if (!validQualities.includes(quality)) {
       throw new HttpException('Invalid quality', HttpStatus.BAD_REQUEST);
     }
 
     const url = `https://www.youtube.com/watch?v=${videoId}`;
-
     try {
-      const contentType = type === 'audio' ? 'audio/webm' : 'video/mp4';
-      res.setHeader('Content-Type', contentType);
-      res.setHeader('Connection', 'keep-alive');
-
-      const videoInfo: YTDL_VideoInfo = await this.ytdl.getFullInfo(url, {
-        disableFileCache: true,
-        includesRelatedVideo: false,
-        includesNextAPIResponse: true,
-        includesPlayerAPIResponse: true,
-        includesOriginalFormatData: true
-      });
-
-      const totalSize = videoInfo.videoDetails.lengthSeconds * 1024 * 1024;
-
-      const stream = await this.ytdl.downloadFromInfo(videoInfo, {
-        filter: type.toLowerCase() === 'audio' ? "audioonly" : "videoandaudio",
-        quality,
-      });
-
-      const range = req.headers.range;
-
-      if (range) {
-        const [start, end] = range.replace(/bytes=/, '').split('-');
-        const startByte = parseInt(start, 10) || 0;
-        const endByte = end ? parseInt(end, 10) : totalSize - 1;
-        const chunkSize = endByte - startByte + 1;
-
-        res.setHeader('Content-Range', `bytes ${startByte}-${endByte}/${totalSize}`);
-        res.setHeader('Content-Length', chunkSize);
-        res.status(HttpStatus.PARTIAL_CONTENT);
-
-        toPipeableStream(stream).pipe(res);
-
-        toPipeableStream(stream).on('end', () => {
-          res.end();
-        });
-
-        toPipeableStream(stream).on('error', (err) => {
-          console.error('Stream error:', err);
-          res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming data');
-        });
-      } else {
-        toPipeableStream(stream).pipe(res);
-      }
+      const data = await ytmp3(url);
+      console.log(data);
+      res.redirect(data.audio);
     } catch (error) {
       console.error(`Failed to stream ${type}: ${error.message}`);
       throw new HttpException(`Failed to stream ${type}: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
