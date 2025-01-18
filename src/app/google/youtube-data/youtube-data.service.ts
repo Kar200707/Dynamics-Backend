@@ -44,6 +44,7 @@ export class YoutubeDataService {
       gl: "AM",
       logDisplay: ['debug', 'error', 'info'],
       disableDefaultClients: true,
+      disableFileCache: true,
       clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
       noUpdate: true,
     });
@@ -58,6 +59,7 @@ export class YoutubeDataService {
         gl: "AM",
         logDisplay: ['debug', 'error', 'info'],
         disableDefaultClients: true,
+        disableFileCache: true,
         clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
         noUpdate: true,
       });
@@ -103,6 +105,7 @@ export class YoutubeDataService {
         logDisplay: ['debug', 'error', 'info'],
         disableDefaultClients: true,
         clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
+        disableFileCache: true,
         noUpdate: true,
       });
 

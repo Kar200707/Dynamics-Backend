@@ -290,6 +290,7 @@ export class MediaService {
           gl: "AM",
           logDisplay: ['debug', 'error', 'info'],
           disableDefaultClients: true,
+          disableFileCache: true,
           clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
           noUpdate: true,
         });
