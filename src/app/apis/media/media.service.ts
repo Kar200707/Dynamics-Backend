@@ -11,13 +11,13 @@ import * as axios from 'axios';
 
 @Injectable()
 export class MediaService {
-  ytdl: YtdlCore = new YtdlCore({
-    gl: "AM",
-    logDisplay: ['debug', 'error', 'info'],
-    disableDefaultClients: true,
-    clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-    noUpdate: true,
-  });
+  // ytdl: YtdlCore = new YtdlCore({
+  //   gl: "AM",
+  //   logDisplay: ['debug', 'error', 'info'],
+  //   disableDefaultClients: true,
+  //   clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
+  //   noUpdate: true,
+  // });
 
   constructor(
     @InjectModel(Track.name) private readonly Tracks: Model<TrackDocument>,
@@ -286,7 +286,15 @@ export class MediaService {
     const user = await this.Users.findOne({ userLocalToken: access_token });
     if (user.id) {
       try {
-        const result:any = await this.ytdl.getBasicInfo(trackId);
+        const ytdl = new YtdlCore({
+          gl: "AM",
+          logDisplay: ['debug', 'error', 'info'],
+          disableDefaultClients: true,
+          clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
+          noUpdate: true,
+        });
+
+        const result:any = await ytdl.getBasicInfo(trackId);
         const recTrackList = [];
         if (result.relatedVideos) {
           result.relatedVideos.slice(0, 10).map(async (track:any) => {

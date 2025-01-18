@@ -9,13 +9,13 @@ import { toPipeableStream, YTDL_VideoInfo, YtdlCore } from '@ybd-project/ytdl-co
 @Injectable()
 export class YoutubeDataService {
   private logger: Logger = new Logger(YoutubeDataService.name);
-  private ytdl: YtdlCore = new YtdlCore({
-    gl: "AM",
-    logDisplay: ['debug', 'error', 'info'],
-    disableDefaultClients: true,
-    clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-    noUpdate: true,
-  });
+  // private ytdl: YtdlCore = new YtdlCore({
+  //   gl: "AM",
+  //   logDisplay: ['debug', 'error', 'info'],
+  //   disableDefaultClients: true,
+  //   clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
+  //   noUpdate: true,
+  // });
   private youtubeInfo: Client = new Client();
 
   constructor() {}
@@ -40,15 +40,29 @@ export class YoutubeDataService {
   }
 
   async getAuthorIdByVideoId(id: string) {
+    const ytdl = new YtdlCore({
+      gl: "AM",
+      logDisplay: ['debug', 'error', 'info'],
+      disableDefaultClients: true,
+      clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
+      noUpdate: true,
+    });
     const url: string = `https://www.youtube.com/watch?v=${id}`;
-    const details = await this.ytdl.getBasicInfo(url);
+    const details = await ytdl.getBasicInfo(url);
     return { authorId: details.videoDetails.author.id };
   }
 
   async getVideoDetailsById(id: string) {
     try {
+      const ytdl = new YtdlCore({
+        gl: "AM",
+        logDisplay: ['debug', 'error', 'info'],
+        disableDefaultClients: true,
+        clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
+        noUpdate: true,
+      });
       const url: string = `https://www.youtube.com/watch?v=${id}`;
-      const info = await this.ytdl.getBasicInfo(url);
+      const info = await ytdl.getBasicInfo(url);
       // console.log(info.videoDetails);
       return info.videoDetails;
       // const url: string = `https://www.youtube.com/watch?v=${id}`;
@@ -84,13 +98,21 @@ export class YoutubeDataService {
     const url = `https://www.youtube.com/watch?v=${videoId}`;
 
     try {
+      const ytdl = new YtdlCore({
+        gl: "AM",
+        logDisplay: ['debug', 'error', 'info'],
+        disableDefaultClients: true,
+        clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
+        noUpdate: true,
+      });
+
       const contentType = type === 'audio' ? 'audio/webm' : 'video/mp4';
       res.setHeader('Content-Type', contentType);
       res.setHeader('Connection', 'keep-alive');
 
-      const videoInfo: YTDL_VideoInfo = await this.ytdl.getFullInfo(url);
+      const videoInfo: YTDL_VideoInfo = await ytdl.getFullInfo(url);
 
-      const stream = await this.ytdl.downloadFromInfo(videoInfo, {
+      const stream = await ytdl.downloadFromInfo(videoInfo, {
         filter: type.toLowerCase() === 'audio' ? "audioonly" : "videoandaudio",
         quality,
       });
