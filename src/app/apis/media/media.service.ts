@@ -13,7 +13,7 @@ import * as axios from 'axios';
 export class MediaService {
   ytdl: YtdlCore = new YtdlCore({
     gl: "AM",
-    logDisplay: ['warning', 'error', 'info'],
+    logDisplay: ['debug', 'error', 'info'],
     disableDefaultClients: true,
     clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
     noUpdate: true,

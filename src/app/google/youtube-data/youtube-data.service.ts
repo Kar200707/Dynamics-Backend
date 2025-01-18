@@ -3,23 +3,22 @@ import { Request, Response } from 'express';
 import ytSearch from 'yt-search';
 import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
-import { YtdlCore, toPipeableStream, YTDL_VideoInfo } from '@ybd-project/ytdl-core';
+import { toPipeableStream, YTDL_VideoInfo, YtdlCore } from '@ybd-project/ytdl-core';
+
 
 @Injectable()
 export class YoutubeDataService {
   private logger: Logger = new Logger(YoutubeDataService.name);
   private ytdl: YtdlCore = new YtdlCore({
     gl: "AM",
-    logDisplay: ['warning', 'error', 'info'],
+    logDisplay: ['debug', 'error', 'info'],
     disableDefaultClients: true,
     clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
     noUpdate: true,
   });
   private youtubeInfo: Client = new Client();
 
-  constructor() {
-
-  }
+  constructor() {}
 
   async getChannelInfo(channelId: string): Promise<any> {
     try {
