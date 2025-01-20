@@ -8,16 +8,20 @@ import { YoutubeDataService } from '../../google/youtube-data/youtube-data.servi
 import { YtdlCore } from '@ybd-project/ytdl-core';
 import sharp from 'sharp';
 import * as axios from 'axios';
+import path from 'node:path';
+import fs from 'node:fs';
 
 @Injectable()
 export class MediaService {
-  // ytdl: YtdlCore = new YtdlCore({
-  //   gl: "AM",
-  //   logDisplay: ['debug', 'error', 'info'],
-  //   disableDefaultClients: true,
-  //   clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-  //   noUpdate: true,
-  // });
+  ytdl: YtdlCore = new YtdlCore({
+    gl: "AM",
+    logDisplay: ['debug', 'error', 'info'],
+    disableDefaultClients: true,
+    disableFileCache: true,
+    disableBasicCache: true,
+    clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
+    noUpdate: true,
+  });
 
   constructor(
     @InjectModel(Track.name) private readonly Tracks: Model<TrackDocument>,
@@ -282,20 +286,31 @@ export class MediaService {
     }
   }
 
+  async clearYtdlCache() {
+    const cacheDir:string = path.join(__dirname, '..', '..', '..', '..', 'node_modules', '@ybd-project', 'ytdl-core', 'bundle', '.CacheFiles');
+
+    try {
+      const files = fs.readdirSync(cacheDir);
+
+      for (const file of files) {
+        const filePath = path.join(cacheDir, file);
+        if (fs.statSync(filePath).isFile()) {
+          console.log(`Deleting file: ${filePath}`);
+          fs.unlinkSync(filePath); // Удаляем файл
+        }
+      }
+
+      console.log('Cache files deleted');
+    } catch (err) {
+      console.error('Error deleting cache files:', err);
+    }
+  }
+
   async getPlayerInfoByVideoId(trackId: string, access_token: string) {
     const user = await this.Users.findOne({ userLocalToken: access_token });
     if (user.id) {
       try {
-        const ytdl = new YtdlCore({
-          gl: "AM",
-          logDisplay: ['debug', 'error', 'info'],
-          disableDefaultClients: true,
-          disableFileCache: true,
-          clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-          noUpdate: true,
-        });
-
-        const result:any = await ytdl.getBasicInfo(trackId);
+        const result:any = await this.ytdl.getBasicInfo(trackId);
         const recTrackList = [];
         if (result.relatedVideos) {
           result.relatedVideos.slice(0, 10).map(async (track:any) => {
@@ -330,6 +345,7 @@ export class MediaService {
             recTracks: recTrackList,
           };
         } else {
+          await this.clearYtdlCache();
           return { message: 'Not Details' }
         }
 

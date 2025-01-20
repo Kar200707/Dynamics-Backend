@@ -4,18 +4,22 @@ import ytSearch from 'yt-search';
 import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
 import { toPipeableStream, YTDL_VideoInfo, YtdlCore } from '@ybd-project/ytdl-core';
+import * as path from 'node:path';
+import * as fs from 'node:fs';
 
 
 @Injectable()
 export class YoutubeDataService {
   private logger: Logger = new Logger(YoutubeDataService.name);
-  // private ytdl: YtdlCore = new YtdlCore({
-  //   gl: "AM",
-  //   logDisplay: ['debug', 'error', 'info'],
-  //   disableDefaultClients: true,
-  //   clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-  //   noUpdate: true,
-  // });
+  private ytdl: YtdlCore = new YtdlCore({
+    gl: "AM",
+    logDisplay: ['debug', 'error', 'info'],
+    disableDefaultClients: true,
+    disableFileCache: true,
+    disableBasicCache: true,
+    clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
+    noUpdate: true,
+  });
   private youtubeInfo: Client = new Client();
 
   constructor() {}
@@ -40,31 +44,35 @@ export class YoutubeDataService {
   }
 
   async getAuthorIdByVideoId(id: string) {
-    const ytdl = new YtdlCore({
-      gl: "AM",
-      logDisplay: ['debug', 'error', 'info'],
-      disableDefaultClients: true,
-      disableFileCache: true,
-      clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-      noUpdate: true,
-    });
     const url: string = `https://www.youtube.com/watch?v=${id}`;
-    const details = await ytdl.getBasicInfo(url);
+    const details = await this.ytdl.getBasicInfo(url);
     return { authorId: details.videoDetails.author.id };
+  }
+
+  async clearYtdlCache() {
+    const cacheDir:string = path.join(__dirname, '..', '..', '..', '..', 'node_modules', '@ybd-project', 'ytdl-core', 'bundle', '.CacheFiles');
+
+    try {
+      const files = fs.readdirSync(cacheDir);
+
+      for (const file of files) {
+        const filePath = path.join(cacheDir, file);
+        if (fs.statSync(filePath).isFile()) {
+          console.log(`Deleting file: ${filePath}`);
+          fs.unlinkSync(filePath); // Удаляем файл
+        }
+      }
+
+      console.log('Cache files deleted');
+    } catch (err) {
+      console.error('Error deleting cache files:', err);
+    }
   }
 
   async getVideoDetailsById(id: string) {
     try {
-      const ytdl = new YtdlCore({
-        gl: "AM",
-        logDisplay: ['debug', 'error', 'info'],
-        disableDefaultClients: true,
-        disableFileCache: true,
-        clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-        noUpdate: true,
-      });
       const url: string = `https://www.youtube.com/watch?v=${id}`;
-      const info = await ytdl.getBasicInfo(url);
+      const info = await this.ytdl.getBasicInfo(url);
       // console.log(info.videoDetails);
       return info.videoDetails;
       // const url: string = `https://www.youtube.com/watch?v=${id}`;
@@ -72,6 +80,7 @@ export class YoutubeDataService {
       // return info.videoDetails;
     } catch (e) {
       console.log(e);
+      await this.clearYtdlCache();
       throw new HttpException('id invalid', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -100,22 +109,13 @@ export class YoutubeDataService {
     const url = `https://www.youtube.com/watch?v=${videoId}`;
 
     try {
-      const ytdl = new YtdlCore({
-        gl: "AM",
-        logDisplay: ['debug', 'error', 'info'],
-        disableDefaultClients: true,
-        clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-        disableFileCache: true,
-        noUpdate: true,
-      });
-
       const contentType = type === 'audio' ? 'audio/webm' : 'video/mp4';
       res.setHeader('Content-Type', contentType);
       res.setHeader('Connection', 'keep-alive');
 
-      const videoInfo: YTDL_VideoInfo = await ytdl.getFullInfo(url);
+      const videoInfo: YTDL_VideoInfo = await this.ytdl.getFullInfo(url);
 
-      const stream = await ytdl.downloadFromInfo(videoInfo, {
+      const stream = await this.ytdl.downloadFromInfo(videoInfo, {
         filter: type.toLowerCase() === 'audio' ? "audioonly" : "videoandaudio",
         quality,
       });
@@ -147,7 +147,8 @@ export class YoutubeDataService {
         toPipeableStream(stream).pipe(res);
       }
     } catch (error) {
-      console.error(`Failed to stream ${type}: ${error.message}`);
+      console.log(`Failed to stream ${type}: ${error.message}`);
+      await this.clearYtdlCache();
       throw new HttpException(`Failed to stream ${type}: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
