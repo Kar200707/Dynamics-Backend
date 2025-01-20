@@ -81,6 +81,7 @@ export class YoutubeDataService {
     } catch (e) {
       console.log(e);
       await this.clearYtdlCache();
+      await this.ytdl.generatePoToken();
       throw new HttpException('id invalid', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -149,6 +150,7 @@ export class YoutubeDataService {
     } catch (error) {
       console.log(`Failed to stream ${type}: ${error.message}`);
       await this.clearYtdlCache();
+      await this.ytdl.generatePoToken();
       throw new HttpException(`Failed to stream ${type}: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

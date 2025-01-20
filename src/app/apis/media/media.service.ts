@@ -346,6 +346,7 @@ export class MediaService {
           };
         } else {
           await this.clearYtdlCache();
+          await this.ytdl.generatePoToken();
           return { message: 'Not Details' }
         }
 
