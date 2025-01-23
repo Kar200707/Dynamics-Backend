@@ -48,6 +48,8 @@ export class YoutubeDataService {
       logDisplay: ['debug', 'error', 'info'],
       disableDefaultClients: true,
       clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
+      disableBasicCache: true,
+      disableFileCache: true,
       noUpdate: true,
     });
     const details = await ytdl.getBasicInfo(url);
@@ -82,6 +84,8 @@ export class YoutubeDataService {
         disableDefaultClients: true,
         clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
         noUpdate: true,
+        disableBasicCache: true,
+        disableFileCache: true,
       });
       const url: string = `https://www.youtube.com/watch?v=${id}`;
       const info = await ytdl.getBasicInfo(url);
@@ -95,6 +99,8 @@ export class YoutubeDataService {
         gl: "AM",
         logDisplay: ['debug', 'error', 'info'],
         disableDefaultClients: true,
+        disableBasicCache: true,
+        disableFileCache: true,
         clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
         noUpdate: true,
       });
@@ -133,6 +139,8 @@ export class YoutubeDataService {
         gl: "AM",
         logDisplay: ['debug', 'error', 'info'],
         disableDefaultClients: true,
+        disableBasicCache: true,
+        disableFileCache: true,
         clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
         noUpdate: true,
       });
@@ -178,6 +186,8 @@ export class YoutubeDataService {
         gl: "AM",
         logDisplay: ['debug', 'error', 'info'],
         disableDefaultClients: true,
+        disableBasicCache: true,
+        disableFileCache: true,
         clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
         noUpdate: true,
       });
