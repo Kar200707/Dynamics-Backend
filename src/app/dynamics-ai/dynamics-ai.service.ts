@@ -33,8 +33,8 @@ export class DynamicsAiService {
   }
 
   async addChat(body): Promise<any> {
-    const { token, message, aiModel } = body;
-    if (!token && !message && !aiModel) {
+    const { token } = body;
+    if (!token) {
       throw new HttpException('Invalid Data', HttpStatus.BAD_REQUEST);
     }
     try {
@@ -47,27 +47,10 @@ export class DynamicsAiService {
       const data = await this.Chats.create({
         userId: user._id,
         at: Date.now(),
-        chat: [
-          { role: 'user', at: Date.now(), content: message }
-        ]
+        chat: []
       })
 
-      this.ai.setModel(aiModel);
-      this.ai.setMessages(data.chat);
-
-      const generatedText = await this.ai.generate();
-
-      const chat = data.chat
-      chat.push({
-        role: 'assistant', at: Date.now(), content: generatedText as any,
-      })
-
-      const newDataForUpdate = data;
-      newDataForUpdate.chat = chat;
-
-      const updatedChat = await this.Chats.findOneAndUpdate({ _id: data._id }, newDataForUpdate, { new: true })
-
-      return { aiMessage: generatedText };
+      return { chatId: data._id };
     } catch (error) {
       console.error('Error:', error.message);
     }
