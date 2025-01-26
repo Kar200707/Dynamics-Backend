@@ -145,4 +145,31 @@ export class DynamicsAiService {
       throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  async deleteChat(token: string, chatId: string): Promise<any> {
+    if (!token || !chatId) {
+      throw new HttpException('Invalid Data', HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      const user = await this.Users.findOne({ userLocalToken: token });
+
+      if (!user) {
+        throw new HttpException('Local token invalid', HttpStatus.BAD_REQUEST);
+      }
+
+      const chatData = await this.Chats.findOne({ _id: chatId, userId: user._id });
+
+      if (!chatData) {
+        throw new HttpException('Chat does not belong to the user or does not exist', HttpStatus.FORBIDDEN);
+      }
+
+      await this.Chats.deleteOne({ _id: chatId });
+
+      return { message: 'Chat deleted successfully' };
+    } catch (error) {
+      console.error('Error:', error.message);
+      throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, HttpException, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, HttpException, HttpStatus, Param, Post } from '@nestjs/common';
 import { DynamicsAiService } from './dynamics-ai.service';
 
 @Controller('dynamics-ai')
@@ -29,5 +29,10 @@ export class DynamicsAiController {
   @Post('create-chat')
   async createChat(@Body() body) {
     return await this.dyAiService.addChat(body);
+  }
+
+  @Post('chat/delete/:id')
+  async removeChat(@Body() body, @Param('id') id: string) {
+    return await this.dyAiService.deleteChat(body.token, id);
   }
 }
