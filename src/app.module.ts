@@ -10,6 +10,7 @@ import { AdminModule } from './app/apis/admin/admin.module';
 import { YoutubeDataService } from './app/google/youtube-data/youtube-data.service';
 import { HttpModule } from '@nestjs/axios';
 import { YoutubeBaseModule } from './app/apis/youtube_base/youtube_base.module';
+import { DynamicsAiModule } from './app/dynamics-ai/dynamics-ai.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { YoutubeBaseModule } from './app/apis/youtube_base/youtube_base.module';
     MediaModule,
     AdminModule,
     YoutubeBaseModule,
+    DynamicsAiModule,
   ],
   controllers: [AppController],
   providers: [AppService, YoutubeDataService, HttpModule],
