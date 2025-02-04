@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, HttpException, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, Param, Post } from '@nestjs/common';
 import { DynamicsAiService } from './dynamics-ai.service';
 
 @Controller('dynamics-ai')

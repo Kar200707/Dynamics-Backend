@@ -3,21 +3,30 @@ import {
   Controller,
   Delete,
   Get,
-  HttpStatus,
   Param,
-  Post,
-  Res,
-  UploadedFile,
+  Post, Req, Res,
+  UploadedFile, UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DriveService } from '../google/drive/drive.service';
+import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService, private driveService: DriveService) {}
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth(@Req() req) {}
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req, @Res() res: Response) {
+    return await this.authService.googleAuth(req, res);
+  }
 
   @Post('reg')
   async register(@Body() body: { name: string, email: string, password: string }) {

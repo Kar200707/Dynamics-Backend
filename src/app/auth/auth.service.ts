@@ -5,10 +5,23 @@ import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import validator from 'validator';
 import { User, UserDocument } from './schemas/user.schema';
+import { Request, Response } from 'express';
 
 @Injectable()
 export class AuthService {
   constructor(@InjectModel(User.name) private readonly Users: Model<UserDocument>) {}
+
+  async googleAuth(req: any, res: Response) {
+    const user = req.user;
+    const token = user.userLocalToken;
+    const userAgent = req.headers['user-agent'] || '';
+
+    if (userAgent.includes('capacitor') || userAgent.includes('android') || userAgent.includes('iphone')) {
+      res.redirect(`dynamics://login?token=${token}`);
+    } else {
+      res.redirect(`${process.env.LOCAL ? 'http://localhost:4200' : process.env.HOST}/login?token=${token}`);
+    }
+  }
 
   async addUser(name: string, email: string, password: string) {
     const findUser = await this.Users.find({email: email});
@@ -24,7 +37,7 @@ export class AuthService {
         let user: UserModel = {
           name: name,
           email: email,
-          avatar: 'https://api-dynamics.adaptable.app/media/image/1rme9ayi_2N8WcCTYSdAwY-YZGsn3CMz7',
+          avatar: 'https://dynamics-backend-production.up.railway.app/media/image/1rme9ayi_2N8WcCTYSdAwY-YZGsn3CMz7',
           bio: '',
           password: hashPass,
           artistFavorites: [],
@@ -52,7 +65,7 @@ export class AuthService {
       throw new HttpException({ message: 'login not successfully' }, HttpStatus.BAD_REQUEST);
     }
     if (email && password) {
-      if (validator.isEmail(email) && password.length > 8) {
+      if (validator.isEmail(email) && password.length > 8 && findUser[0].password) {
         if (await bcrypt.compare(password, findUser[0].password)) {
           return { accses_token: findUser[0].userLocalToken, message: 'login successfully' };
         } else {
