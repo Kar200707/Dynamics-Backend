@@ -19,7 +19,7 @@ export class AuthService {
     if (userAgent.includes('capacitor') || userAgent.includes('android') || userAgent.includes('iphone')) {
       res.redirect(`dynamics://login?token=${token}`);
     } else {
-      res.redirect(`${process.env.LOCAL === 'true' ? 'http://localhost:4200' : process.env.HOST}/login?token=${token}`);
+      res.redirect(`${process.env.LOCAL === 'true' ? 'http://localhost:4200' : 'https://dynamics-9080b.web.app'}/login?token=${token}`);
     }
   }
 
