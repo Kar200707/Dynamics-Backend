@@ -16,10 +16,10 @@ export class AuthService {
     const token = user.userLocalToken;
     const userAgent = req.headers['user-agent'] || '';
 
-    if (userAgent.includes('capacitor') || userAgent.includes('android') || userAgent.includes('iphone')) {
-      res.redirect(`dynamics://login?token=${token}`);
+    if (process.env.LOCAL === 'true') {
+      res.redirect(`http://localhost:4200/login?token=${token}`);
     } else {
-      res.redirect(`${process.env.LOCAL === 'true' ? 'http://localhost:4200' : 'https://dynamics-9080b.web.app'}/login?token=${token}`);
+      res.redirect(`dynamics://login?token=${token}`);
     }
   }
 
