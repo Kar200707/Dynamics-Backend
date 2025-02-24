@@ -3,7 +3,8 @@ import { Request, Response } from 'express';
 import ytSearch from 'yt-search';
 import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
-import { toPipeableStream, YTDL_VideoInfo, YtdlCore } from '@ybd-project/ytdl-core';
+// import { toPipeableStream, YTDL_VideoInfo, YtdlCore } from '@ybd-project/ytdl-core';
+import ytdl from '@distube/ytdl-core'
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 
@@ -43,15 +44,15 @@ export class YoutubeDataService {
 
   async getAuthorIdByVideoId(id: string) {
     const url: string = `https://www.youtube.com/watch?v=${id}`;
-    const ytdl: YtdlCore = new YtdlCore({
-      gl: "AM",
-      logDisplay: ['debug', 'error', 'info'],
-      disableDefaultClients: true,
-      clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-      disableBasicCache: true,
-      disableFileCache: true,
-      noUpdate: true,
-    });
+    // const ytdl: YtdlCore = new YtdlCore({
+    //   gl: "AM",
+    //   logDisplay: ['debug', 'error', 'info'],
+    //   disableDefaultClients: true,
+    //   clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
+    //   disableBasicCache: true,
+    //   disableFileCache: true,
+    //   noUpdate: true,
+    // });
     const details = await ytdl.getBasicInfo(url);
     return { authorId: details.videoDetails.author.id };
   }
@@ -78,15 +79,15 @@ export class YoutubeDataService {
 
   async getVideoDetailsById(id: string) {
     try {
-      const ytdl: YtdlCore = new YtdlCore({
-        gl: "AM",
-        logDisplay: ['debug', 'error', 'info'],
-        disableDefaultClients: true,
-        clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-        noUpdate: true,
-        disableBasicCache: true,
-        disableFileCache: true,
-      });
+      // const ytdl: YtdlCore = new YtdlCore({
+      //   gl: "AM",
+      //   logDisplay: ['debug', 'error', 'info'],
+      //   disableDefaultClients: true,
+      //   clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
+      //   noUpdate: true,
+      //   disableBasicCache: true,
+      //   disableFileCache: true,
+      // });
       const url: string = `https://www.youtube.com/watch?v=${id}`;
       const info = await ytdl.getBasicInfo(url);
       // console.log(info.videoDetails);
@@ -95,18 +96,18 @@ export class YoutubeDataService {
       // const info = await this.ytdl.getBasicInfo(url);
       // return info.videoDetails;
     } catch (e) {
-      const ytdl: YtdlCore = new YtdlCore({
-        gl: "AM",
-        logDisplay: ['debug', 'error', 'info'],
-        disableDefaultClients: true,
-        disableBasicCache: true,
-        disableFileCache: true,
-        clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-        noUpdate: true,
-      });
-      console.log(e);
-      await this.clearYtdlCache();
-      await ytdl.generatePoToken();
+      // const ytdl: YtdlCore = new YtdlCore({
+      //   gl: "AM",
+      //   logDisplay: ['debug', 'error', 'info'],
+      //   disableDefaultClients: true,
+      //   disableBasicCache: true,
+      //   disableFileCache: true,
+      //   clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
+      //   noUpdate: true,
+      // });
+      // console.log(e);
+      // await this.clearYtdlCache();
+      // await ytdl.generatePoToken();
       throw new HttpException('id invalid', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -135,23 +136,24 @@ export class YoutubeDataService {
     const url = `https://www.youtube.com/watch?v=${videoId}`;
 
     try {
-      const ytdl: YtdlCore = new YtdlCore({
-        gl: "AM",
-        logDisplay: ['debug', 'error', 'info'],
-        disableDefaultClients: true,
-        disableBasicCache: true,
-        disableFileCache: true,
-        clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-        noUpdate: true,
-      });
+      // const ytdl: YtdlCore = new YtdlCore({
+      //   gl: "AM",
+      //   logDisplay: ['debug', 'error', 'info'],
+      //   disableDefaultClients: true,
+      //   disableBasicCache: true,
+      //   disableFileCache: true,
+      //   clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
+      //   noUpdate: true,
+      // });
+
       const contentType = type === 'audio' ? 'audio/webm' : 'video/mp4';
       res.setHeader('Content-Type', contentType);
       res.setHeader('Connection', 'keep-alive');
 
-      const videoInfo: YTDL_VideoInfo = await ytdl.getFullInfo(url);
+      const videoInfo = await ytdl.getInfo(url);
 
-      const stream = await ytdl.downloadFromInfo(videoInfo, {
-        filter: type.toLowerCase() === 'audio' ? "audioonly" : "videoandaudio",
+      const stream = ytdl.downloadFromInfo(videoInfo, {
+        filter: type.toLowerCase() === 'audio' ? 'audioonly' : 'videoandaudio',
         quality,
       });
 
@@ -168,32 +170,32 @@ export class YoutubeDataService {
         res.setHeader('Content-Length', chunkSize);
         res.status(HttpStatus.PARTIAL_CONTENT);
 
-        toPipeableStream(stream).pipe(res);
+        stream.pipe(res);
 
-        toPipeableStream(stream).on('end', () => {
+        stream.on('end', () => {
           res.end();
         });
 
-        toPipeableStream(stream).on('error', (err) => {
+        stream.on('error', (err) => {
           console.error('Stream error:', err);
           res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming data');
         });
       } else {
-        toPipeableStream(stream).pipe(res);
+        stream.pipe(res);
       }
     } catch (error) {
-      const ytdl: YtdlCore = new YtdlCore({
-        gl: "AM",
-        logDisplay: ['debug', 'error', 'info'],
-        disableDefaultClients: true,
-        disableBasicCache: true,
-        disableFileCache: true,
-        clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-        noUpdate: true,
-      });
+      // const ytdl: YtdlCore = new YtdlCore({
+      //   gl: "AM",
+      //   logDisplay: ['debug', 'error', 'info'],
+      //   disableDefaultClients: true,
+      //   disableBasicCache: true,
+      //   disableFileCache: true,
+      //   clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
+      //   noUpdate: true,
+      // });
       console.log(`Failed to stream ${type}: ${error.message}`);
-      await this.clearYtdlCache();
-      await ytdl.generatePoToken();
+      // await this.clearYtdlCache();
+      // await ytdl.generatePoToken();
       throw new HttpException(`Failed to stream ${type}: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
