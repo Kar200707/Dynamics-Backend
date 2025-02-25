@@ -15,4 +15,4 @@ import { Response } from 'express';
 import { YoutubeDataService } from './app/google/youtube-data/youtube-data.service';
 
 @Controller()
-export class AppController {  }
+export class AppController {   }
