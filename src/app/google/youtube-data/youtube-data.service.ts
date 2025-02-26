@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import ytSearch from 'yt-search';
 import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
-// import { toPipeableStream, YTDL_VideoInfo, YtdlCore } from '@ybd-project/ytdl-core';
+import { toPipeableStream, YTDL_VideoInfo, YtdlCore } from '@ybd-project/ytdl-core';
 import ytdl from '@distube/ytdl-core'
 import * as path from 'node:path';
 import * as fs from 'node:fs';
@@ -12,13 +12,13 @@ import * as fs from 'node:fs';
 @Injectable()
 export class YoutubeDataService {
   private logger: Logger = new Logger(YoutubeDataService.name);
-  // private ytdl: YtdlCore = new YtdlCore({
-  //   gl: "AM",
-  //   logDisplay: ['debug', 'error', 'info'],
-  //   disableDefaultClients: true,
-  //   clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-  //   noUpdate: true,
-  // });
+  private ytdl: YtdlCore = new YtdlCore({
+    gl: "AM",
+    logDisplay: ['debug', 'error', 'info'],
+    disableDefaultClients: true,
+    clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
+    noUpdate: true,
+  });
   private youtubeInfo: Client = new Client();
 
   constructor() {}
@@ -30,10 +30,12 @@ export class YoutubeDataService {
       });
       const channelInfo = await this.youtubeInfo.getChannel(channelId);
 
+      console.log(channelInfo);
+
       const info = {
         title: channelInfo.name,
         image: channelInfo.thumbnails[channelInfo.thumbnails.length - 1].url,
-        videos: videos.items
+        videos: channelInfo.shelves[0].items
       }
       return info;
     } catch (error) {
@@ -53,7 +55,7 @@ export class YoutubeDataService {
     //   disableFileCache: true,
     //   noUpdate: true,
     // });
-    const details = await ytdl.getBasicInfo(url);
+    const details = await this.ytdl.getBasicInfo(url);
     return { authorId: details.videoDetails.author.id };
   }
 
@@ -89,7 +91,7 @@ export class YoutubeDataService {
       //   disableFileCache: true,
       // });
       const url: string = `https://www.youtube.com/watch?v=${id}`;
-      const info = await ytdl.getBasicInfo(url);
+      const info = await this.ytdl.getBasicInfo(url);
       // console.log(info.videoDetails);
       return info.videoDetails;
       // const url: string = `https://www.youtube.com/watch?v=${id}`;
