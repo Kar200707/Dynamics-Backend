@@ -25,7 +25,7 @@ export class YoutubeDataService {
 
   async getChannelInfo(channelId: string): Promise<any> {
     try {
-      const videos = ytch.getChannelVideos({
+      const videos = ytch.getChannelInfo({
         channelId
       });
       const channelInfo = await this.youtubeInfo.getChannel(channelId);
@@ -91,7 +91,7 @@ export class YoutubeDataService {
       //   disableFileCache: true,
       // });
       const url: string = `https://www.youtube.com/watch?v=${id}`;
-      const info = await this.ytdl.getBasicInfo(url);
+      const info = await ytdl.getInfo(url);
       // console.log(info.videoDetails);
       return info.videoDetails;
       // const url: string = `https://www.youtube.com/watch?v=${id}`;

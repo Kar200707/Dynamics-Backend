@@ -125,7 +125,7 @@ export class DynamicsAiService {
       this.ai.setModel(aiModel);
       this.ai.setMessages(chatData.chat);
 
-      const generatedText = await this.ai.generate();
+      const generatedText:any = await this.ai.generate();
 
       chatData.chat.push({
         role: 'assistant',
