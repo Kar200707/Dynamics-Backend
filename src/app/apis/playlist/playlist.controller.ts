@@ -19,7 +19,7 @@ export class PlaylistController {
 
   @Put('update/:id')
   async updatePlaylist(@Body() body, @Param('id') id: string) {
-    return await this.playlistService.updatePlaylist(body.token, body.tracks, id);
+    return await this.playlistService.updatePlaylist(body.token, body.tracks, id, body.playlistName);
   }
 
   @Post('create')

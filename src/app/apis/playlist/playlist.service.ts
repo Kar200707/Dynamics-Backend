@@ -47,7 +47,7 @@ export class PlaylistService {
     return { playlist };
   }
 
-  async updatePlaylist(token: string, tracks: any, playlistId: string) {
+  async updatePlaylist(token: string, tracks: any, playlistId: string, playlistName: string) {
     if (!token) {
       throw new HttpException('Tracks or Token undefined', HttpStatus.BAD_REQUEST);
     }
@@ -66,6 +66,9 @@ export class PlaylistService {
 
     const newPlaylist = userPlaylist;
     newPlaylist.tracks = tracks;
+    if (playlistName) {
+      newPlaylist.playlistName = playlistName;
+    }
 
     const updatedUserPlaylist = await this.playlists.findOneAndUpdate({ _id: playlistId }, newPlaylist, { new: true });
 
