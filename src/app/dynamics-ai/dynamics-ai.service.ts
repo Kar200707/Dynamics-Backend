@@ -4,6 +4,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../auth/schemas/user.schema';
 import { Model, Schema } from 'mongoose';
 import { Chat, ChatDocument } from './schemas/chat.schema';
+import { streamText } from 'ai';
+import { openai } from '@ai-sdk/openai';
+import { Response } from 'express';
 
 @Injectable()
 export class DynamicsAiService {
@@ -94,6 +97,46 @@ export class DynamicsAiService {
     }
 
     return { chats: chatData };
+  }
+
+  async streamResponse(text: string, res: Response) {
+    try {
+      res.setHeader('Content-Type', 'text/plain'); // Устанавливаем тип контента
+
+      // Стримим ответ от OpenAI
+      const result = streamText({
+        model: openai('gpt-4o'),
+        messages: [{ role: "user", content: text }],
+      });
+
+      if (!result) {
+        res.status(500).send('Ошибка при получении данных от OpenAI.');
+        return;
+      }
+
+      const stream = result.toDataStreamResponse(); // Получаем поток
+      if (!stream || !stream.body) {
+        res.status(500).send('Ошибка: тело потока не получено.');
+        return;
+      }
+
+      const reader = stream.body.getReader();
+      // result.toDataStreamResponse().body.pipeTo(res)
+      // Читаем поток и отправляем данные по мере получения
+      const pushStream = async () => {
+        const { done, value } = await reader.read();
+        if (done) {
+          res.end(); // Закрываем поток
+          return;
+        }
+        res.write(value); // Отправляем данные клиенту
+        pushStream(); // Продолжаем читать и отправлять данные
+      };
+
+      pushStream(); // Начинаем читать поток
+    } catch (error) {
+      res.status(500).send('Произошла ошибка при обработке потока.');
+    }
   }
 
   async chatMessage(body, chatId: string): Promise<any> {

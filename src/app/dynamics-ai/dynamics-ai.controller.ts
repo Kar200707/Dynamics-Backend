@@ -1,5 +1,6 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Res } from '@nestjs/common';
 import { DynamicsAiService } from './dynamics-ai.service';
+import { Response } from 'express';
 
 @Controller('dynamics-ai')
 export class DynamicsAiController {
@@ -9,6 +10,11 @@ export class DynamicsAiController {
   @Post('getModels')
   async getModels(@Body() body: { token: string }) {
     return await this.dyAiService.getModels(body.token);
+  }
+
+  @Get('test')
+  async test(@Body() body: { text: string }, @Res() res: Response) {
+    return this.dyAiService.streamResponse(body.text, res);
   }
 
   @Post('get-chat/:id')

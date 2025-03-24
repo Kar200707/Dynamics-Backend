@@ -3,10 +3,12 @@ import { Request, Response } from 'express';
 import ytSearch from 'yt-search';
 import { Client } from 'youtubei';
 import ytch from 'yt-channel-info';
-import { toPipeableStream, YTDL_VideoInfo, YtdlCore } from '@ybd-project/ytdl-core';
+import { YtdlCore } from '@ybd-project/ytdl-core';
 import ytdl from '@distube/ytdl-core'
 import * as path from 'node:path';
 import * as fs from 'node:fs';
+import youtubedl from 'youtube-dl-exec';
+import { number } from 'zod';
 
 
 @Injectable()
@@ -138,66 +140,56 @@ export class YoutubeDataService {
     const url = `https://www.youtube.com/watch?v=${videoId}`;
 
     try {
-      // const ytdl: YtdlCore = new YtdlCore({
-      //   gl: "AM",
-      //   logDisplay: ['debug', 'error', 'info'],
-      //   disableDefaultClients: true,
-      //   disableBasicCache: true,
-      //   disableFileCache: true,
-      //   clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-      //   noUpdate: true,
-      // });
 
-      const contentType = type === 'audio' ? 'audio/webm' : 'video/mp4';
-      res.setHeader('Content-Type', contentType);
-      res.setHeader('Connection', 'keep-alive');
+      // const contentType = type === 'audio' ? 'audio/webm' : 'video/mp4';
+      // res.setHeader('Content-Type', contentType);
+      // res.setHeader('Connection', 'keep-alive');
 
-      const videoInfo = await ytdl.getInfo(url);
+      // const videoInfo = await this.ytdl.getBasicInfo(url);
 
-      const stream = ytdl.downloadFromInfo(videoInfo, {
-        filter: type.toLowerCase() === 'audio' ? 'audioonly' : 'videoandaudio',
-        quality,
+      const stream:any = await youtubedl(url, {
+        dumpSingleJson: true,
+        format: 'bestaudio[ext=webm]/best',
+        noCheckCertificates: true,
+        noWarnings: true,
+        quiet: true,
+        addHeader: ['referer:youtube.com', 'user-agent:googlebot']
       });
 
-      const totalSize = parseInt(videoInfo.formats[0].contentLength, 10);
-      const range = req.headers.range;
+      console.log(stream);
+      res.redirect(stream.url);
 
-      if (range) {
-        const [start, end] = range.replace(/bytes=/, '').split('-');
-        const startByte = parseInt(start, 10) || 0;
-        const endByte = end ? parseInt(end, 10) : totalSize - 1;
-        const chunkSize = endByte - startByte + 1;
 
-        res.setHeader('Content-Range', `bytes ${startByte}-${endByte}/${totalSize}`);
-        res.setHeader('Content-Length', chunkSize);
-        res.status(HttpStatus.PARTIAL_CONTENT);
-
-        stream.pipe(res);
-
-        stream.on('end', () => {
-          res.end();
-        });
-
-        stream.on('error', (err) => {
-          console.error('Stream error:', err);
-          res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming data');
-        });
-      } else {
-        stream.pipe(res);
-      }
+      // const totalSize = parseInt(stream.requested_formats[0].contentLength, 10);
+      // const range = req.headers.range;
+      //
+      // if (range) {
+      //   const [start, end] = range.replace(/bytes=/, '').split('-');
+      //   const startByte = parseInt(start, 10) || 0;
+      //   const endByte = end ? parseInt(end, 10) : totalSize - 1;
+      //   const chunkSize = endByte - startByte + 1;
+      //
+      //   res.setHeader('Content-Range', `bytes ${startByte}-${endByte}/${totalSize}`);
+      //   res.setHeader('Content-Length', chunkSize);
+      //   res.status(HttpStatus.PARTIAL_CONTENT);
+      //
+      //   stream.stdin.pipe(res);
+      //
+      //   console.log(stream);
+      //
+      //   stream.on('end', () => {
+      //     res.end();
+      //   });
+      //
+      //   stream.on('error', (err) => {
+      //     console.error('Stream error:', err);
+      //     res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming data');
+      //   });
+      // } else {
+      //   stream.stdin.pipe(res);
+      // }
     } catch (error) {
-      // const ytdl: YtdlCore = new YtdlCore({
-      //   gl: "AM",
-      //   logDisplay: ['debug', 'error', 'info'],
-      //   disableDefaultClients: true,
-      //   disableBasicCache: true,
-      //   disableFileCache: true,
-      //   clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-      //   noUpdate: true,
-      // });
       console.log(`Failed to stream ${type}: ${error.message}`);
-      // await this.clearYtdlCache();
-      // await ytdl.generatePoToken();
       throw new HttpException(`Failed to stream ${type}: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
