@@ -153,6 +153,8 @@ export class YoutubeDataService {
       //   quality,
       // });
 
+      console.log(videoInfo.videoUrl);
+      console.log(videoInfo);
       res.redirect(videoInfo.videoUrl);
     //
     //   const totalSize = parseInt(videoInfo.formats[0].contentLength, 10);
