@@ -12,10 +12,10 @@ export class DynamicsAiController {
     return await this.dyAiService.getModels(body.token);
   }
 
-  @Get('test')
-  async test(@Body() body: { text: string }, @Res() res: Response) {
-    return this.dyAiService.streamResponse(body.text, res);
-  }
+  // @Get('test')
+  // async test(@Body() body: { text: string }, @Res() res: Response) {
+  //   return this.dyAiService.streamResponse(body.text, res);
+  // }
 
   @Post('get-chat/:id')
   async getChat(@Body() body, @Param('id') id: string) {
