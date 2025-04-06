@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Ip, Param, Post, Query, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { YoutubeDataService } from '../../google/youtube-data/youtube-data.service';
 
@@ -31,12 +31,10 @@ export class YoutubeBaseController {
   async getStream(
     @Param('id') trackId: string,
     @Res() res: Response,
-    @Ip() ip,
     @Req() req: Request,
     @Query('type') type: string,
     @Query('quality') quality: string
-  ) {
-    console.log(ip);
+  ) {;
     return await this.youtubeBase.streamAudio(trackId, req, res, type, quality);
   }
 }

@@ -118,9 +118,17 @@ export class YoutubeDataService {
     }
   }
 
-  async streamAudio(videoId: string, req: Request, res: Response, type: string, quality: string) {
+  async streamAudio(
+    videoId: string,
+    req: Request,
+    res: Response,
+    type: string,
+    quality: string
+  ) {
     const validTypes = ['video', 'audio'];
-    const validQualities = ['lowest', 'highest', 'highestaudio', 'lowestaudio', 'highestvideo', 'lowestvideo'];
+    const validQualities = [
+      'lowest', 'highest', 'highestaudio', 'lowestaudio', 'highestvideo', 'lowestvideo'
+    ];
 
     if (!validTypes.includes(type)) {
       throw new HttpException('Invalid type', HttpStatus.BAD_REQUEST);
@@ -129,72 +137,63 @@ export class YoutubeDataService {
       throw new HttpException('Invalid quality', HttpStatus.BAD_REQUEST);
     }
 
-    const url = `https://www.youtube.com/watch?v=${videoId}`;
+    const url = `https://youtu.be/${videoId}`;
 
     try {
-      // const ytdl: YtdlCore = new YtdlCore({
-      //   gl: "AM",
-      //   logDisplay: ['debug', 'error', 'info'],
-      //   disableDefaultClients: true,
-      //   disableBasicCache: true,
-      //   disableFileCache: true,
-      //   clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-      //   noUpdate: true,
-      // });
-
       const contentType = type === 'audio' ? 'audio/webm' : 'video/mp4';
       res.setHeader('Content-Type', contentType);
       res.setHeader('Connection', 'keep-alive');
+      res.setHeader('Accept-Ranges', 'bytes');
 
-      const videoInfo:any = await ytdl.getInfo(url);
+      const videoInfo = await ytdl.getInfo(url);
 
-      // const stream = await ytdl(url, {
-      //   filter: type.toLowerCase() === 'audio' ? 'audioonly' : 'videoandaudio',
-      //   quality,
-      // });
+      if (!videoInfo?.formats?.length) {
+        throw new HttpException('No formats available', HttpStatus.BAD_REQUEST);
+      }
 
-      res.redirect(videoInfo.videoUrl);
-    //
-    //   const totalSize = parseInt(videoInfo.formats[0].contentLength, 10);
-    //   const range = req.headers.range;
-    //
-    //   if (range) {
-    //     const [start, end] = range.replace(/bytes=/, '').split('-');
-    //     const startByte = parseInt(start, 10) || 0;
-    //     const endByte = end ? parseInt(end, 10) : totalSize - 1;
-    //     const chunkSize = endByte - startByte + 1;
-    //
-    //     res.setHeader('Content-Range', `bytes ${startByte}-${endByte}/${totalSize}`);
-    //     res.setHeader('Content-Length', chunkSize);
-    //     res.status(HttpStatus.PARTIAL_CONTENT);
-    //
-    //     stream.pipe(res);
-    //
-    //     stream.on('end', () => {
-    //       res.end();
-    //     });
-    //
-    //     stream.on('error', (err) => {
-    //       console.error('Stream error:', err);
-    //       res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming data');
-    //     });
-    //   } else {
-    //     stream.pipe(res);
-    //   }
+      const format = videoInfo.formats.find(f => f.contentLength);
+      if (!format) {
+        throw new HttpException('No suitable format with contentLength', HttpStatus.BAD_REQUEST);
+      }
+
+      const totalSize = parseInt(format.contentLength, 10);
+      const range = req.headers.range;
+
+
+      const stream = ytdl.downloadFromInfo(videoInfo, {
+        filter: type === 'audio' ? 'audioonly' : 'videoandaudio',
+        quality,
+        highWaterMark: 1 << 23,
+      });
+
+      if (range) {
+        const [start, end] = range.replace(/bytes=/, '').split('-');
+        const startByte = parseInt(start, 10) || 0;
+        const endByte = end ? parseInt(end, 10) : totalSize - 1;
+        const chunkSize = endByte - startByte + 1;
+
+        res.setHeader('Content-Range', `bytes ${startByte}-${endByte}/${totalSize}`);
+        res.setHeader('Content-Length', chunkSize);
+        res.status(HttpStatus.PARTIAL_CONTENT);
+      } else {
+        res.setHeader('Content-Length', totalSize);
+        res.status(HttpStatus.OK);
+      }
+
+      stream.pipe(res);
+
+      stream.on('end', () => res.end());
+
+      stream.on('error', (err) => {
+        console.error('Stream error:', err);
+        if (!res.headersSent) {
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error streaming data');
+        }
+      });
+
     } catch (error) {
-    //   // const ytdl: YtdlCore = new YtdlCore({
-    //   //   gl: "AM",
-    //   //   logDisplay: ['debug', 'error', 'info'],
-    //   //   disableDefaultClients: true,
-    //   //   disableBasicCache: true,
-    //   //   disableFileCache: true,
-    //   //   clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-    //   //   noUpdate: true,
-    //   // });
-    //   console.log(`Failed to stream ${type}: ${error.message}`);
-    //   // await this.clearYtdlCache();
-    //   // await ytdl.generatePoToken();
-    //   throw new HttpException(`Failed to stream ${type}: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
+      console.error(`Failed to stream ${type}: ${error.message}`);
+      throw new HttpException(`Failed to stream ${type}: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
