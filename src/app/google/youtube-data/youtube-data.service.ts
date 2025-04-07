@@ -140,25 +140,25 @@ export class YoutubeDataService {
     const url = `https://youtu.be/${videoId}`;
 
     try {
+      const videoInfo = await ytdl.getInfo(url);
+
       const contentType = type === 'audio' ? 'audio/webm' : 'video/mp4';
       res.setHeader('Content-Type', contentType);
       res.setHeader('Connection', 'keep-alive');
       res.setHeader('Accept-Ranges', 'bytes');
 
-      const videoInfo = await ytdl.getInfo(url);
+      const format = ytdl.chooseFormat(videoInfo.formats, {
+        filter: type === 'audio' ? 'audioonly' : 'videoandaudio',
+        quality,
+      });
 
-      if (!videoInfo?.formats?.length) {
-        throw new HttpException('No formats available', HttpStatus.BAD_REQUEST);
-      }
-
-      const format = videoInfo.formats.find(f => f.contentLength);
-      if (!format) {
+      if (!format || !format.contentLength) {
         throw new HttpException('No suitable format with contentLength', HttpStatus.BAD_REQUEST);
       }
 
       const totalSize = parseInt(format.contentLength, 10);
-      const range = req.headers.range;
 
+      const range = req.headers.range;
 
       const stream = ytdl.downloadFromInfo(videoInfo, {
         filter: type === 'audio' ? 'audioonly' : 'videoandaudio',
