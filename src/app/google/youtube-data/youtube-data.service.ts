@@ -142,8 +142,6 @@ export class YoutubeDataService {
     try {
       const videoInfo = await ytdl.getInfo(url);
 
-      const contentType = type === 'audio' ? 'audio/webm' : 'video/mp4';
-      res.setHeader('Content-Type', contentType);
       res.setHeader('Connection', 'keep-alive');
       res.setHeader('Accept-Ranges', 'bytes');
 
@@ -151,6 +149,9 @@ export class YoutubeDataService {
         filter: type === 'audio' ? 'audioonly' : 'videoandaudio',
         quality,
       });
+
+      const contentType = type === 'audio' ? format.mimeType : 'video/mp4';
+      res.setHeader('Content-Type', contentType);
 
       if (!format || !format.contentLength) {
         throw new HttpException('No suitable format with contentLength', HttpStatus.BAD_REQUEST);
