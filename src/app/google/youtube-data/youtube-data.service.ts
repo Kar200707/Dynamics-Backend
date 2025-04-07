@@ -146,11 +146,10 @@ export class YoutubeDataService {
       res.setHeader('Accept-Ranges', 'bytes');
 
       const format = ytdl.chooseFormat(videoInfo.formats, {
-        filter: type === 'audio' ? 'audioonly' : 'videoandaudio',
-        quality,
+        filter: type === 'audio' ? 'audioonly' : 'videoandaudio'
       });
 
-      const contentType = type === 'audio' ? format.mimeType : 'video/mp4';
+      const contentType = type === 'audio' ? 'audio/webm' : 'video/mp4';
       res.setHeader('Content-Type', contentType);
 
       if (!format || !format.contentLength) {

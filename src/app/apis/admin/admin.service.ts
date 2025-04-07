@@ -5,7 +5,6 @@ import { Track, TrackDocument } from '../media/schemas/track-details.schema';
 import { User, UserDocument } from '../../auth/schemas/user.schema';
 import { DriveService } from '../../google/drive/drive.service';
 import { extname } from 'path';
-import { v4 as uuidv4 } from 'uuid';
 import mp3Duration from 'mp3-duration';
 
 @Injectable()
