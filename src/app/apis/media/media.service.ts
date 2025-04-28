@@ -309,14 +309,9 @@ export class MediaService {
     const user = await this.Users.findOne({ userLocalToken: access_token });
     if (user.id) {
       try {
-        const ytdl: YtdlCore = new YtdlCore({
-          gl: "AM",
-          logDisplay: ['debug', 'error', 'info'],
-          disableDefaultClients: true,
-          clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-          noUpdate: true,
-        });
-        const result:any = await ytdl.getBasicInfo(trackId);
+        const ytdl: YtdlCore = new YtdlCore();
+        const result:any = await ytdl.getFullInfo(trackId);
+        console.log(result);
         const recTrackList = [];
         if (result.relatedVideos) {
           result.relatedVideos.slice(0, 10).map(async (track:any) => {
