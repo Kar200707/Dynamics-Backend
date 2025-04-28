@@ -208,8 +208,8 @@ export class MediaService {
         addedAt: Date.now()
       });
 
-      if (addedUser.searchHistory.length > 10) {
-        addedUser.searchHistory = addedUser.searchHistory.slice(0, 10);
+      if (addedUser.searchHistory.length > 20) {
+        addedUser.searchHistory = addedUser.searchHistory.slice(0, 20);
       }
 
       await this.Users.findOneAndUpdate(
@@ -295,7 +295,7 @@ export class MediaService {
         const filePath = path.join(cacheDir, file);
         if (fs.statSync(filePath).isFile()) {
           console.log(`Deleting file: ${filePath}`);
-          fs.unlinkSync(filePath); // Удаляем файл
+          fs.unlinkSync(filePath);
         }
       }
 

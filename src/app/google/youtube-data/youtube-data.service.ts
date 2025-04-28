@@ -19,19 +19,20 @@ export class YoutubeDataService {
 
   async getChannelInfo(channelId: string): Promise<any> {
     try {
-      const videos = ytch.getChannelInfo({
+      const videos = await ytch.getChannelInfo({
         channelId
       });
-      const channelInfo = await this.youtubeInfo.getChannel(channelId);
-
-      console.log(channelInfo);
-
-      const info = {
-        title: channelInfo.name,
-        image: channelInfo.thumbnails[channelInfo.thumbnails.length - 1].url,
-        videos: channelInfo.shelves[0].items
-      }
-      return info;
+      console.log(videos);
+      // const channelInfo = await this.youtubeInfo.getChannel(channelId);
+      //
+      // console.log(channelInfo);
+      //
+      // const info = {
+      //   title: channelInfo.name,
+      //   image: channelInfo.thumbnails[channelInfo.thumbnails.length - 1].url,
+      //   videos: channelInfo.shelves[0].items
+      // }
+      // return info;
     } catch (error) {
       console.log(error);
       throw new HttpException('id invalid', HttpStatus.BAD_REQUEST);
@@ -111,7 +112,7 @@ export class YoutubeDataService {
   async getVideoSearchList(query: string): Promise<any> {
     try {
       const results = await ytSearch(query);
-      return results.videos.slice(0, 10);
+      return { videos: results.videos.slice(0, 20), channels: [...results.channels] };
     } catch (error) {
       this.logger.error('Error searching YouTube:', error.message);
       throw new HttpException('Error searching YouTube', HttpStatus.INTERNAL_SERVER_ERROR);
