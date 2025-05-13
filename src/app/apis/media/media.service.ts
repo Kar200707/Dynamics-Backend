@@ -10,7 +10,6 @@ import sharp from 'sharp';
 import * as axios from 'axios';
 import path from 'node:path';
 import fs from 'node:fs';
-import ytdl from '@distube/ytdl-core';
 
 @Injectable()
 export class MediaService {
@@ -150,7 +149,7 @@ export class MediaService {
     const user = await this.Users.findOne({ userLocalToken: access_token });
     if (user) {
       const addedUser: any = user.toObject();
-      const trackDetails: ytdl.MoreVideoDetails = await this.youtubeDataService.getVideoDetailsById(trackId);
+      const trackDetails = await this.youtubeDataService.getVideoDetailsById(trackId);
 
       const existingIndex = addedUser.playHistory.findIndex(entry => entry.videoId === trackId);
 

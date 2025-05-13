@@ -76,35 +76,19 @@ export class YoutubeDataService {
 
   async getVideoDetailsById(id: string) {
     try {
-      // const ytdl: YtdlCore = new YtdlCore({
-      //   gl: "AM",
-      //   logDisplay: ['debug', 'error', 'info'],
-      //   disableDefaultClients: true,
-      //   clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-      //   noUpdate: true,
-      //   disableBasicCache: true,
-      //   disableFileCache: true,
-      // });
       const url: string = `https://www.youtube.com/watch?v=${id}`;
-      const info = await ytdl.getInfo(url);
-      // console.log(info.videoDetails);
+      const ytdl: YtdlCore = new YtdlCore({
+        gl: "AM",
+        logDisplay: ['debug', 'error', 'info'],
+        disableDefaultClients: true,
+        clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
+        noUpdate: true,
+        disableBasicCache: true,
+        disableFileCache: true,
+      });
+      const info = await ytdl.getFullInfo(url);
       return info.videoDetails;
-      // const url: string = `https://www.youtube.com/watch?v=${id}`;
-      // const info = await this.ytdl.getBasicInfo(url);
-      // return info.videoDetails;
     } catch (e) {
-      // const ytdl: YtdlCore = new YtdlCore({
-      //   gl: "AM",
-      //   logDisplay: ['debug', 'error', 'info'],
-      //   disableDefaultClients: true,
-      //   disableBasicCache: true,
-      //   disableFileCache: true,
-      //   clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-      //   noUpdate: true,
-      // });
-      // console.log(e);
-      // await this.clearYtdlCache();
-      // await ytdl.generatePoToken();
       throw new HttpException('id invalid', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
