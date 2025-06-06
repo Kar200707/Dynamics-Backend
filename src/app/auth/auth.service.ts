@@ -37,7 +37,7 @@ export class AuthService {
         let user: UserModel = {
           name: name,
           email: email,
-          avatar: 'https://dynamics-backend-production.up.railway.app/media/image/1rme9ayi_2N8WcCTYSdAwY-YZGsn3CMz7',
+          avatar: `${process.env.SERVER_HOST}/media/image/1rme9ayi_2N8WcCTYSdAwY-YZGsn3CMz7`,
           bio: '',
           password: hashPass,
           artistFavorites: [],
