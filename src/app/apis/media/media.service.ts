@@ -310,7 +310,6 @@ export class MediaService {
       try {
         const ytdl: YtdlCore = new YtdlCore();
         const result:any = await ytdl.getFullInfo(trackId);
-        console.log(result);
         const recTrackList = [];
         if (result.relatedVideos) {
           result.relatedVideos.slice(0, 10).map(async (track:any) => {
@@ -345,15 +344,6 @@ export class MediaService {
             recTracks: recTrackList,
           };
         } else {
-          const ytdl: YtdlCore = new YtdlCore({
-            gl: "AM",
-            logDisplay: ['debug', 'error', 'info'],
-            disableDefaultClients: true,
-            clients: ['android', 'ios', 'mweb', 'tv', 'web', 'webEmbedded', 'webCreator', 'tvEmbedded'],
-            noUpdate: true,
-          });
-          await this.clearYtdlCache();
-          await ytdl.generatePoToken();
           return { message: 'Not Details' }
         }
 

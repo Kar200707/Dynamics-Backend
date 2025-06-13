@@ -66,6 +66,7 @@ export class PlaylistService {
 
     const newPlaylist = userPlaylist;
     newPlaylist.tracks = tracks;
+    newPlaylist.addedAt = Date.now();
     if (playlistName) {
       newPlaylist.playlistName = playlistName;
     }
